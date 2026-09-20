@@ -78,7 +78,7 @@ dist/official/
 - [x] Commit docs/scripts/metadata only.
 - [x] Push `main` to the public GitHub repository.
 - [x] Create and verify public release tag `zellij-v0.45.1` with Linux/Windows archive,
-  checksum, and manifest assets.
+  checksum, and manifest assets; re-downloaded Release assets passed local SHA-256 checks.
 
 ### 5. Windows acceptance handoff
 
@@ -107,4 +107,3 @@ python3 packaging/package_official.py verify \
 
 No command in this plan starts a new build on `surfer`; source-build fallback remains
 documented separately and is intentionally not part of the official release update.
-

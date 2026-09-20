@@ -117,6 +117,10 @@ cargo +1.95.0 build --locked --release --target x86_64-unknown-linux-musl
   x86_64 upstream binary SHA-256 為
   `7c34f38921e6884873a9922bfdd4907f4d68fd0a2dd930ce357e4c7cb23f6f42`。這兩個是
   upstream binary hash；重新封裝後的 archive hash 另記在 `dist/official/*.sha256`。
+- 本次 release archive hash：Linux
+  `54f4a0b2ea33aa67b5529cbc8ceb0e722cfca3ae882bcf0d650c0beb27e2f7ec`；Windows
+  `5dd56b1a86727ad5ba7c7bfd978bddf64f7a12caf9018bc321552d4cebcabf22`。從 GitHub
+  Release 重新下載後，兩個 `.sha256` 與本機 metadata 比對均通過。
 - official package 的 archive root 直接放 `zellij`/`zellij.exe`。舊 source-build
   acceptance 曾假設多一層 package directory，已改成同時支援兩種 layout。
 - `ssh surfer` 的 Linux x86_64 temporary-directory acceptance 已通過：

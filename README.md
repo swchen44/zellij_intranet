@@ -167,7 +167,7 @@ Release 內容應包含每個 target 的：
 2. `.sha256`
 3. `.manifest.json`
 
-目前 release tag 規劃為 `zellij-v0.45.1`，project 為
+目前已建立 release tag `zellij-v0.45.1`，project 為
 <https://github.com/swchen44/zellij_intranet>。公司內網交付時先下載並驗證 Release
 assets，再同步到內網檔案區；runtime 不需要連 GitHub。相關做法與大小限制見
 [`packaging/OFFICIAL-BINARY.md`](packaging/OFFICIAL-BINARY.md)。
