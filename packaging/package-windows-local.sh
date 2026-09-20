@@ -54,6 +54,45 @@ The web/share capability is excluded from this terminal-only package; it is not 
 Windows Terminal + Zellij + Yazi usage.
 EOF
 
+cat > "$STAGE/README.md" <<EOF
+# Zellij offline portable package
+
+- Version: $VERSION
+- Variant: source-fallback
+- Target: $TARGET
+
+## Prerequisites
+
+Use on a matching x86_64 Windows host with Windows Terminal and a shell. Rust, Cargo,
+OpenSSL, Visual Studio, Yazi, SSH, and network access are not runtime prerequisites.
+
+## Usage
+
+\`\`\`powershell
+.\\zellij.exe --version
+.\\zellij.exe setup --check
+.\\zellij.exe
+\`\`\`
+
+## Add to PATH
+
+\`\`\`powershell
+\$env:Path = "\$PWD;\$env:Path"
+zellij.exe
+\`\`\`
+
+## Boundary
+
+This source-fallback package contains Zellij only. It does not contain Yazi, SSH,
+Windows Terminal, a shell, Claude Code, Codex, or preview helpers. Windows runtime
+verification is pending on a real Windows host.
+
+## Links
+
+- Project: https://github.com/swchen44/zellij_intranet
+- Upstream documentation: https://zellij.dev/documentation/
+EOF
+
 cat > "$STAGE/BUILD-INFO.txt" <<EOF
 product=zellij
 version=$VERSION
@@ -69,7 +108,7 @@ build_jobs=${ZELLIJ_WINDOWS_BUILD_JOBS:-1}
 EOF
 
 rm -f "$ARCHIVE" "$MANIFEST" "$CHECKSUM"
-(cd "$STAGE_ROOT" && zip -q -X "$ARCHIVE" "$NAME/zellij.exe" "$NAME/README.txt" "$NAME/LICENSE.md" "$NAME/BUILD-INFO.txt")
+(cd "$STAGE_ROOT" && zip -q -X "$ARCHIVE" "$NAME/zellij.exe" "$NAME/README.md" "$NAME/README.txt" "$NAME/LICENSE.md" "$NAME/BUILD-INFO.txt")
 archive_sha256="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
 printf '%s  %s\n' "$archive_sha256" "$(basename "$ARCHIVE")" > "$CHECKSUM"
 

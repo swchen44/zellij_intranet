@@ -1,5 +1,9 @@
 # Zellij 內網可攜式封裝設計
 
+> Historical design record. The current authoritative official-bundle design is
+> [`2026-09-21-zellij-offline-bundle-design.md`](2026-09-21-zellij-offline-bundle-design.md).
+> This file is retained for the source-build and `surfer` investigation history.
+
 ## 目標
 
 從已固定版本的官方 Zellij release binary 產生可直接搬進公司內網的 target-specific 產物：

@@ -1,6 +1,9 @@
 package_version = "0.46.0"
 source_commit = "474ea0cef620c83d6ec05a7c28c7f80c4f63bbbb"
 source_describe = "v0.44.1-122-g474ea0cef"
+official_release_version = "0.45.1"
+official_variant = "full"
+source_build_version = "0.46.0"
 rust_toolchain = "1.95.0"
 linux_targets = ["x86_64-unknown-linux-musl"]
 windows_targets = ["x86_64-pc-windows-msvc"]

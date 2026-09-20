@@ -45,6 +45,45 @@ Windows Terminal + Zellij + Yazi usage.
 "@ | Set-Content -Encoding utf8 (Join-Path $Stage "README.txt")
 
 @"
+# Zellij offline portable package
+
+- Version: $Version
+- Variant: source-fallback
+- Target: $Target
+
+## Prerequisites
+
+Use on a matching x86_64 Windows host with Windows Terminal or another compatible
+terminal and a shell. Rust, Cargo, OpenSSL, Visual Studio, Yazi, SSH, and network
+access are not runtime prerequisites.
+
+## Usage
+
+```powershell
+.\zellij.exe --version
+.\zellij.exe setup --check
+.\zellij.exe
+```
+
+## Add to PATH
+
+```powershell
+`$env:Path = "`$PWD;`$env:Path"
+zellij.exe
+```
+
+## Boundary
+
+This source-fallback package contains Zellij only. It does not contain Yazi, SSH,
+Windows Terminal, a shell, Claude Code, Codex, or preview helpers.
+
+## Links
+
+- Project: https://github.com/swchen44/zellij_intranet
+- Upstream documentation: https://zellij.dev/documentation/
+"@ | Set-Content -Encoding utf8 (Join-Path $Stage "README.md")
+
+@"
 product=zellij
 version=$Version
 source_commit=$SourceCommit

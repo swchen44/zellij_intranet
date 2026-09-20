@@ -47,6 +47,44 @@ This package does not include Rust, Cargo, Yazi, Claude Code, Codex, SSH, or a s
 Builtin WASM plugins are embedded in the zellij binary and do not require network access.
 EOF
 
+cat > "$STAGE/README.md" <<EOF
+# Zellij offline portable package
+
+- Version: `$VERSION`
+- Variant: `source-fallback`
+- Target: `$TARGET`
+
+## Prerequisites
+
+Use on a matching x86_64 Linux host with a terminal and shell. Rust, Cargo, OpenSSL,
+protoc, musl tools, Yazi, SSH, and network access are not runtime prerequisites.
+
+## Usage
+
+```sh
+./zellij --version
+./zellij setup --check
+./zellij
+```
+
+## Add to PATH
+
+```sh
+export PATH="\$PWD:\$PATH"
+zellij
+```
+
+## Boundary
+
+This source-fallback package contains Zellij only. It does not contain Yazi, SSH,
+Windows Terminal, a shell, Claude Code, Codex, or preview helpers.
+
+## Links
+
+- Project: https://github.com/swchen44/zellij_intranet
+- Upstream documentation: https://zellij.dev/documentation/
+EOF
+
 cat > "$STAGE/BUILD-INFO.txt" <<EOF
 product=zellij
 version=$VERSION

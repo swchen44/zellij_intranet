@@ -84,8 +84,13 @@ class OfficialPackageUnitTests(unittest.TestCase):
                 self.assertIn("zellij", members)
                 self.assertEqual(members["zellij"].mode & 0o111, 0o111)
                 self.assertIn("BUILD-INFO.txt", members)
+                self.assertIn("README.md", members)
                 self.assertIn("README.txt", members)
                 self.assertIn("LICENSE.md", members)
+                readme = archive.extractfile("README.md").read().decode("utf-8")
+                for section in ("## Prerequisites", "## Add to PATH", "## Boundary", "## Links"):
+                    self.assertIn(section, readme)
+                self.assertIn("https://github.com/swchen44/zellij_intranet", readme)
             manifest = json.loads(
                 output.with_name(output.name.removesuffix(".tar.gz") + ".manifest.json")
                 .read_text(encoding="utf-8")
@@ -117,8 +122,13 @@ class OfficialPackageUnitTests(unittest.TestCase):
             with zipfile.ZipFile(output) as archive:
                 self.assertEqual(
                     set(archive.namelist()),
-                    {"zellij.exe", "BUILD-INFO.txt", "README.txt", "LICENSE.md"},
+                    {"zellij.exe", "BUILD-INFO.txt", "README.md", "README.txt", "LICENSE.md"},
                 )
+                readme = archive.read("README.md").decode("utf-8")
+                self.assertIn("Windows Terminal", readme)
+                self.assertIn("### Windows x86_64 (PowerShell)", readme)
+                self.assertIn("$env:Path", readme)
+                self.assertIn("## Boundary", readme)
 
     def test_create_package_is_reproducible_for_same_inputs(self):
         with tempfile.TemporaryDirectory() as tmp:

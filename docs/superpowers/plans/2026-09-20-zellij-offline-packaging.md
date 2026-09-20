@@ -1,5 +1,10 @@
 # Zellij Offline Portable Packaging Implementation Plan
 
+> Historical implementation record. The current authoritative official-bundle plan is
+> [`2026-09-21-zellij-offline-bundle.md`](2026-09-21-zellij-offline-bundle.md). This file
+> is retained because it records the original source-build investigation and completed
+> `surfer` Linux evidence.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 從固定版本的官方 Zellij release binary 產生可在公司內網直接解壓執行的 Linux 與 Windows portable packages，並驗證兩個實際使用情境。

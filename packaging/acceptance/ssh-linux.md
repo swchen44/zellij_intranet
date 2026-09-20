@@ -1,5 +1,9 @@
 # SSH → Linux Zellij interactive acceptance
 
+> Historical source-build fallback record. The current official delivery artifact is
+> `zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz`; the already completed Linux
+> runtime evidence is retained and is not rerun for the package README/documentation update.
+
 - Test time: 2026-09-20
 - SSH host alias: `surfer`
 - Artifact: `zellij-x86_64-unknown-linux-musl.tar.gz`

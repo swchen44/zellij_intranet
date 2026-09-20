@@ -1,21 +1,38 @@
 # Zellij 內網封裝經驗與 Lessons Learned
 
-最後更新：2026-09-20
+最後更新：2026-09-21
 
 這份文件保存目前實際 build、package 與 SSH 驗證得到的經驗。`surfer` 是借用的
 x86_64 Linux build/test runner，不是正式部署主機；正式交付不能依賴它長期存在。
 
-## 已固定的來源與產物
+## 來源與產物要分成兩條線
+
+正式交付使用官方 release，source build 只保留為 fallback；兩者的版本與 provenance
+不可混寫。
+
+### Official delivery baseline
+
+- upstream release：`v0.45.1`。
+- default variant：`full`；`no-web` 只能明確指定。
+- Linux target：`x86_64-unknown-linux-musl`。
+- Windows target：`x86_64-pc-windows-msvc`。
+- package root：binary、`README.md`、相容用 `README.txt`、`BUILD-INFO.txt`、`LICENSE.md`。
+- package metadata：每個 archive 同時有 `.sha256` 與 `.manifest.json`。
+- `README.md` 是現在的使用文件 contract；它包含 prerequisites、Linux/Windows usage、
+  PATH、boundary 與 GitHub links，並由 unit test/local verifier 檢查。
+- ARM64 本輪不打包、不做 runtime verification。
+
+### Source-build fallback baseline
 
 - Zellij version：`0.46.0`。
 - source commit：`474ea0cef620c83d6ec05a7c28c7f80c4f63bbbb`。
 - Git describe：`v0.44.1-122-g474ea0cef`。
 - Rust toolchain：`1.95.0`。
-- Linux target：`x86_64-unknown-linux-musl`。
-- Windows target：`x86_64-pc-windows-msvc`。
-- Windows feature profile：`terminal-only`（`--no-default-features --features plugins_from_target`）。
 - artifact：`zellij-x86_64-unknown-linux-musl.tar.gz`。
-- artifact SHA-256：`be41a661f6f3c00b2e2a1b0dbc40313c05461018f2e91ba8b1f73d116dc46ca6`。
+- source fallback Windows feature profile：`terminal-only`（`--no-default-features --features plugins_from_target`）。
+- 歷史 source artifact SHA-256：`be41a661f6f3c00b2e2a1b0dbc40313c05461018f2e91ba8b1f73d116dc46ca6`。
+
+source fallback 的 build-time tools 不代表 official runtime 的必要依賴。
 
 ## 借用 build host 的限制
 
@@ -69,6 +86,7 @@ cargo +1.95.0 build --locked --release --target x86_64-unknown-linux-musl
   12 個 plugin dump 都成功。
 - package 只包含 binary、README、license、build info，不包含 Rust、Cargo、
   source tree、registry、Yazi、Claude Code、Codex 或 SSH。
+- package README 必須實際放進 archive；project root README 不能取代解壓後使用說明。
 - Linux package verifier 需要 Linux 的 `readelf` 並會執行 Linux binary；在
   macOS build workstation 只能做 archive/checksum/contract checks，Linux
   runtime verifier 必須在 `surfer` 或其他相同 target 的 Linux host 執行。
@@ -89,13 +107,16 @@ cargo +1.95.0 build --locked --release --target x86_64-unknown-linux-musl
   baseline。
 - `full` variant 包含 Web Server/Web Client capability，但 Web Server 預設不會自動
   啟動。若對內網其他主機開放，仍要設定 authentication、HTTPS、listen IP 與 port。
+- `full` package 的 Web capability 不代表已完成 Windows Web/ConPTY acceptance；只有
+  target runtime 實測後才能宣稱通過。
 - 官方 release 的 `.sha256sum` 檔案驗證的是解壓後 `zellij` 或 `zellij.exe`，不是
   `.tar.gz`/`.zip` archive。正確順序是下載、解壓、找 root binary、比對 binary
   SHA-256，再重新封裝。
-- 實際驗證版本：`v0.45.1`。Linux x86_64 binary SHA-256 為
-  `0ec6ef07b63c6355c02ce18343d40ef5ef5af19e25313ea9009c8fceda29e94f`；Windows
-  x86_64 binary SHA-256 為
-  `3d01a2571076885f31a013b3bf1071fd1aba1db2e7b82190c68833737a625346`。
+- 實際封裝版本：`v0.45.1` full。Linux x86_64 upstream binary SHA-256 為
+  `d006c521dcb475a6005d741e9dd7c5758e5a23b28dd60a5c10cebfa4876319dd`；Windows
+  x86_64 upstream binary SHA-256 為
+  `7c34f38921e6884873a9922bfdd4907f4d68fd0a2dd930ce357e4c7cb23f6f42`。這兩個是
+  upstream binary hash；重新封裝後的 archive hash 另記在 `dist/official/*.sha256`。
 - official package 的 archive root 直接放 `zellij`/`zellij.exe`。舊 source-build
   acceptance 曾假設多一層 package directory，已改成同時支援兩種 layout。
 - `ssh surfer` 的 Linux x86_64 temporary-directory acceptance 已通過：
@@ -108,6 +129,15 @@ cargo +1.95.0 build --locked --release --target x86_64-unknown-linux-musl
   metadata；Windows Terminal、ConPTY、Windows loader、resize、mouse、detach/attach
   仍必須在真正 Windows host 驗證。
 - ARM64 這一輪不列入 package 預設 targets，也不宣稱 ARM64 runtime 已驗證。
+
+## 這次文件更新的決策
+
+- Linux `surfer` 的既有 temporary-directory runtime acceptance 已足夠作為本版本 evidence，
+  本次只更新 package README contract、tests、docs 與 release，不重新佔用借用主機做 Linux 實驗。
+- Windows runtime 仍由使用者在另一台 Windows x86_64 computer 驗收；不能由 macOS、Linux、
+  Wine 或 PE 檢查推論 Windows Terminal/ConPTY 通過。
+- Release archives 不再加入 Git；`.gitignore` 防止後續誤 commit，`.sha256` 與 manifest
+  留在 repository，archive 上傳 public GitHub Release。
 
 ## Windows local candidate 經驗
 

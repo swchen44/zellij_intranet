@@ -150,7 +150,131 @@ def _package_stem(version: str, variant: str, target: str) -> str:
     return f"zellij-{normalize_version(version)}-{variant}-{spec.upstream_target}"
 
 
+def _runtime_readme_markdown(version: str, variant: str, target: str) -> str:
+    binary = TARGETS[target].binary_name
+    if target == "linux-x86_64":
+        platform_name = "Linux x86_64"
+        run_command = f"./{binary}"
+        version_command = f"./{binary} --version"
+        path_command = 'export PATH="$PWD:$PATH"'
+        path_run_command = "zellij"
+    else:
+        platform_name = "Windows x86_64 (PowerShell)"
+        run_command = f".\\{binary}"
+        version_command = f".\\{binary} --version"
+        path_command = '$env:Path = "$PWD;$env:Path"'
+        path_run_command = "zellij.exe"
+
+    if variant == "full":
+        web_boundary = (
+            "This `full` variant includes the upstream Zellij Web Server/Web Client capability. "
+            "It does not start a web server automatically. Before exposing a web endpoint, "
+            "configure authentication, HTTPS, listen address, and port for the company policy."
+        )
+    else:
+        web_boundary = (
+            "This `no-web` variant excludes the upstream Web Server/Web Client capability. "
+            "Use the `full` variant only when the web capability is explicitly required and "
+            "has passed a separate security review."
+        )
+
+    return "\n".join(
+        [
+            "# Zellij offline portable package",
+            "",
+            f"- Version: `{normalize_version(version)}`",
+            f"- Variant: `{variant}`",
+            f"- Target: `{target}`",
+            "",
+            "This archive is prepared for the `zellij_intranet` project. Extract the complete "
+            "archive and run the platform binary from the extracted directory. The package "
+            "does not download anything at runtime.",
+            "",
+            "## Prerequisites",
+            "",
+            f"- A matching {platform_name} host.",
+            "- A terminal and shell supplied by the host. Windows native use is intended for "
+            "Windows Terminal; the SSH scenario uses the remote Linux shell.",
+            "- No Rust, Cargo, OpenSSL, `protoc`, musl toolchain, Visual Studio, Git, or "
+            "package manager is required at runtime.",
+            "- Yazi, SSH, Windows Terminal, shells, Claude Code, and Codex are external "
+            "commands and are not included in this archive.",
+            "",
+            "## Usage",
+            "",
+            f"### {platform_name}",
+            "",
+            "Run Zellij directly:",
+            "",
+            "```text",
+            run_command,
+            version_command,
+            f"{run_command} setup --check",
+            "```",
+            "",
+            "The first command starts Zellij. The other commands are useful smoke checks "
+            "before starting an interactive session.",
+            "",
+            "## Add to PATH",
+            "",
+            "For the current shell only, add this package directory to `PATH`:",
+            "",
+            "```sh" if target == "linux-x86_64" else "```powershell",
+            path_command,
+            path_run_command,
+            "```",
+            "",
+            "Do not copy only the binary to another directory if you also need the release "
+            "metadata; keep the complete extracted package together for traceability.",
+            "",
+            "## Built-in plugins",
+            "",
+            "The official release binary contains Zellij's bundled WASM plugins. They are "
+            "embedded in the binary; a separate plugin directory, Rust toolchain, or network "
+            "download is not required for the built-in plugin set.",
+            "",
+            "```text",
+            f"{run_command} setup --dump-plugins <temporary-plugin-directory>",
+            "```",
+            "",
+            "## Boundary",
+            "",
+            "- This is a Zellij binary package, not a complete terminal workstation bundle.",
+            "- It does not include Yazi, SSH, Windows Terminal, a shell, Claude Code, Codex, "
+            "or company authentication/configuration.",
+            "- This release package targets x86_64 only. ARM64 is not included or runtime "
+            "verified in this project version.",
+            "- Runtime network access is not required for the terminal workflow.",
+            f"- {web_boundary}",
+            "- Image, video, PDF, and archive preview helpers belong to the separate Yazi "
+            "bundle and are outside this package's scope.",
+            "",
+            "## Release and checksums",
+            "",
+            "Keep this archive together with its matching `.sha256` and `.manifest.json` "
+            "files. Verify the archive checksum before extracting it. The manifest records "
+            "both the package SHA-256 and the upstream binary SHA-256.",
+            "",
+            "## Links",
+            "",
+            "- Project: https://github.com/swchen44/zellij_intranet",
+            f"- Upstream release: https://github.com/zellij-org/zellij/releases/tag/{normalize_version(version)}",
+            "- Upstream documentation: https://zellij.dev/documentation/",
+            "",
+        ]
+    )
+
+
 def _write_runtime_readme(path: Path, version: str, variant: str, target: str) -> None:
+    path.write_text(
+        _runtime_readme_markdown(version, variant, target),
+        encoding="utf-8",
+    )
+
+
+def _write_runtime_readme_compatibility(
+    path: Path, version: str, variant: str, target: str
+) -> None:
     binary = TARGETS[target].binary_name
     path.write_text(
         "\n".join(
@@ -162,6 +286,7 @@ def _write_runtime_readme(path: Path, version: str, variant: str, target: str) -
                 f"Target: {target}",
                 "",
                 f"Run ./{binary} from this directory.",
+                "Read README.md for prerequisites, PATH instructions, boundaries, and links.",
                 "This package is self-contained and does not download anything at runtime.",
                 "Yazi, shells, SSH and Windows Terminal are packaged separately.",
                 "",
@@ -227,7 +352,10 @@ def create_package(
         if target == "linux-x86_64":
             binary.chmod(0o755)
         shutil.copy2(license_source, package_root / "LICENSE.md")
-        _write_runtime_readme(package_root / "README.txt", version, variant, target)
+        _write_runtime_readme(package_root / "README.md", version, variant, target)
+        _write_runtime_readme_compatibility(
+            package_root / "README.txt", version, variant, target
+        )
         _write_build_info(
             package_root / "BUILD-INFO.txt",
             version,
@@ -240,6 +368,7 @@ def create_package(
         members = [
             package_root / spec.binary_name,
             package_root / "BUILD-INFO.txt",
+            package_root / "README.md",
             package_root / "README.txt",
             package_root / "LICENSE.md",
         ]
@@ -292,6 +421,7 @@ def create_package(
                 "downloaded_archive_sha256": downloaded_archive_sha256,
                 "runtime_network_required": False,
                 "arm64_runtime_verification": "not-run",
+                "package_readme": "README.md",
             },
             indent=2,
         )
@@ -385,6 +515,11 @@ def verify_package(package: Path) -> None:
     target = manifest.get("target")
     if target not in TARGETS:
         raise ValueError(f"manifest contains unsupported target: {target!r}")
+    variant = manifest.get("variant")
+    if variant not in {"full", "no-web"}:
+        raise ValueError(f"manifest contains unsupported variant: {variant!r}")
+    if manifest.get("package_readme") != "README.md":
+        raise ValueError("manifest must identify README.md as the package README")
     binary = TARGETS[target].binary_name
     with tempfile.TemporaryDirectory(prefix="zellij-verify-") as temporary:
         extracted = Path(temporary)
@@ -394,6 +529,17 @@ def verify_package(package: Path) -> None:
             raise ValueError(f"package is missing {binary}")
         if target == "linux-x86_64" and binary_path.stat().st_mode & 0o111 == 0:
             raise ValueError("Linux zellij binary is not executable")
+        readme_path = extracted / "README.md"
+        if not readme_path.is_file():
+            raise ValueError("package is missing README.md")
+        readme = readme_path.read_text(encoding="utf-8")
+        for section in ("## Prerequisites", "## Add to PATH", "## Boundary", "## Links"):
+            if section not in readme:
+                raise ValueError(f"package README.md is missing section: {section}")
+        if "https://github.com/swchen44/zellij_intranet" not in readme:
+            raise ValueError("package README.md is missing the project GitHub link")
+        if "https://github.com/zellij-org/zellij/releases/tag/" not in readme:
+            raise ValueError("package README.md is missing the upstream release link")
     print(f"[verify] package SHA-256 {package.name}: {actual}")
 
 

@@ -39,9 +39,16 @@ require_file "$PACKAGING/build-windows.ps1"
 require_file "$PACKAGING/package-windows.ps1"
 require_file "$PACKAGING/verify-windows.ps1"
 require_file "$PACKAGING/verify-package.ps1"
+require_file "$ROOT/docs/superpowers/specs/2026-09-21-zellij-offline-bundle-design.md"
+require_file "$ROOT/docs/superpowers/plans/2026-09-21-zellij-offline-bundle.md"
+require_file "$ROOT/docs/plans/2026-09-21-zellij-windows-acceptance.md"
 
 grep -Fq 'linux_targets = ["x86_64-unknown-linux-musl"]' "$PACKAGING/targets.toml" \
 	|| fail "Linux target is not fixed to x86_64-unknown-linux-musl"
+grep -Fq 'official_release_version = "0.45.1"' "$PACKAGING/targets.toml" \
+	|| fail "official release baseline is not recorded"
+grep -Fq 'official_variant = "full"' "$PACKAGING/targets.toml" \
+	|| fail "official default variant is not recorded"
 grep -Fq 'bundled_plugins = true' "$PACKAGING/targets.toml" \
 	|| fail "bundled plugin policy is not enabled"
 grep -Fq 'CARGO_BUILD_JOBS=1' "$PACKAGING/build-linux.sh" \
@@ -58,6 +65,16 @@ grep -Fq 'Compress-Archive' "$PACKAGING/package-windows.ps1" \
 	|| fail "Windows package script does not create ZIP"
 grep -Fq 'Get-FileHash' "$PACKAGING/verify-windows.ps1" \
 	|| fail "Windows verifier does not validate SHA-256"
+grep -Fq 'README.md' "$PACKAGING/package_official.py" \
+	|| fail "official packager does not include README.md"
+grep -Fq 'README.md' "$PACKAGING/package-linux.sh" \
+	|| fail "Linux source fallback does not include README.md"
+grep -Fq 'README.md' "$PACKAGING/package-windows-local.sh" \
+	|| fail "Windows local fallback does not include README.md"
+grep -Fq '/dist/official/*.tar.gz' "$ROOT/.gitignore" \
+	|| fail "release tarballs are not protected from Git commits"
+grep -Fq '/dist/official/*.zip' "$ROOT/.gitignore" \
+	|| fail "release ZIPs are not protected from Git commits"
 
 bash -n \
 	"$PACKAGING/check-build-tools.sh" \

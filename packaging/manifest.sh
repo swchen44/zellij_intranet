@@ -32,6 +32,7 @@ cat > "$OUTPUT" <<EOF
   "target": "$TARGET",
   "feature_profile": "$FEATURE_PROFILE",
   "bundled_plugins": true,
+  "package_readme": "README.md",
   "archive": "$(basename "$ARCHIVE")",
   "sha256": "$ARCHIVE_SHA256"
 }

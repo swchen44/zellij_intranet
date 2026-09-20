@@ -31,9 +31,17 @@ die() {
 
 [[ -d "$PACKAGE_DIR" ]] || die "missing package root"
 [[ -x "$PACKAGE_DIR/zellij" ]] || die "missing executable zellij"
+[[ -f "$PACKAGE_DIR/README.md" ]] || die "missing README.md"
 [[ -f "$PACKAGE_DIR/README.txt" ]] || die "missing README.txt"
 [[ -f "$PACKAGE_DIR/LICENSE.md" ]] || die "missing LICENSE.md"
 [[ -f "$PACKAGE_DIR/BUILD-INFO.txt" ]] || die "missing BUILD-INFO.txt"
+
+for section in '## Prerequisites' '## Add to PATH' '## Boundary' '## Links'; do
+	grep -Fq "$section" "$PACKAGE_DIR/README.md" \
+		|| die "README.md missing section: $section"
+done
+grep -Fq 'https://github.com/swchen44/zellij_intranet' "$PACKAGE_DIR/README.md" \
+	|| die "README.md missing project GitHub link"
 
 for required in version source_commit source_describe rust_toolchain target feature_profile bundled_plugins; do
 	grep -Eq "^${required}=" "$PACKAGE_DIR/BUILD-INFO.txt" \

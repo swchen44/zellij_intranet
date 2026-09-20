@@ -79,13 +79,27 @@ dist/official/
 
 ```text
 zellij 或 zellij.exe
+README.md
 README.txt
 BUILD-INFO.txt
 LICENSE.md
 ```
 
-解壓後可直接執行 binary。runtime 不會連外下載任何東西；Yazi、shell、SSH、
-Windows Terminal 與 Claude Code/Codex 仍然各自管理。
+`README.md` 是 package 內的主要使用文件，必須包含 prerequisites、Linux/Windows
+執行方式、PATH、boundary、`full`/`no-web` 說明與 project/upstream links。`README.txt`
+保留給舊流程相容，不取代 Markdown 文件。解壓後可直接執行 binary；runtime 不會連外
+下載任何東西；Yazi、shell、SSH、Windows Terminal 與 Claude Code/Codex 仍然各自管理。
+
+可以直接檢查兩個 package 的內部文件：
+
+```bash
+tar -xOzf dist/official/zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz README.md
+unzip -p dist/official/zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip README.md
+```
+
+上述內容應可看到 `Prerequisites`、`Add to PATH`、`Boundary`、`Links` 四個 section。
+`package_official.py verify` 與 `packaging/tests/test_official_package.py` 也會自動
+檢查這個 contract。
 
 ## 離線驗證
 
@@ -125,3 +139,15 @@ Windows 端可用 PowerShell 執行相同 Python script 的 `verify` 子命令�
 
 官方 Windows prebuilt binary 不等於 Yazi Windows runtime dependencies 已完成。
 `file.exe`、previewer、`ffmpeg`、`7zip`、`ripgrep` 等由 Yazi package 另外處理。
+
+## GitHub Release distribution
+
+Release archive 不提交到 Git history；`.gitignore` 會防止後續將
+`dist/official/*.tar.gz` 或 `dist/official/*.zip` 加入 Git。`.sha256` 與
+`.manifest.json` 保留作為 provenance evidence。正式交付 tag 使用
+`zellij-v0.45.1`，Release asset 應包含兩個 target 各自的 archive、checksum 與
+manifest。現有歷史若已有先前提交的 archive，不在本次工作中改寫歷史；只停止未來
+追蹤並把交付檔放到 GitHub Release。
+
+Project：<https://github.com/swchen44/zellij_intranet>
+Upstream：<https://github.com/zellij-org/zellij>

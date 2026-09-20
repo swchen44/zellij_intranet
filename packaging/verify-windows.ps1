@@ -13,22 +13,44 @@ try {
         $TempRoot = Join-Path $env:TEMP ("zellij-verify-{0}" -f ([guid]::NewGuid().ToString("N")))
         New-Item -ItemType Directory -Force -Path $TempRoot | Out-Null
         Expand-Archive -LiteralPath $InputPath -DestinationPath $TempRoot -Force
-        $PackageRoot = Join-Path $TempRoot "zellij-x86_64-pc-windows-msvc"
+        $NestedPackageRoot = Join-Path $TempRoot "zellij-x86_64-pc-windows-msvc"
+        if (Test-Path (Join-Path $NestedPackageRoot "zellij.exe") -PathType Leaf) {
+            $PackageRoot = $NestedPackageRoot
+        } else {
+            $PackageRoot = $TempRoot
+        }
     } elseif (Test-Path $InputPath -PathType Container) {
         $PackageRoot = (Resolve-Path $InputPath).Path
     } else {
         throw "package not found: $InputPath"
     }
 
-    foreach ($required in @("zellij.exe", "README.txt", "LICENSE.md", "BUILD-INFO.txt")) {
+    foreach ($required in @("zellij.exe", "README.md", "README.txt", "LICENSE.md", "BUILD-INFO.txt")) {
         if (-not (Test-Path (Join-Path $PackageRoot $required) -PathType Leaf)) { throw "missing package file: $required" }
     }
 
-    $BuildInfo = Get-Content (Join-Path $PackageRoot "BUILD-INFO.txt") -Raw
-    foreach ($required in @("version=", "source_commit=", "source_describe=", "rust_toolchain=", "target=", "feature_profile=", "bundled_plugins=")) {
-        if ($BuildInfo -notmatch [regex]::Escape($required)) { throw "BUILD-INFO.txt missing $required" }
+    $Readme = Get-Content (Join-Path $PackageRoot "README.md") -Raw
+    foreach ($section in @("## Prerequisites", "## Add to PATH", "## Boundary", "## Links")) {
+        if ($Readme -notmatch [regex]::Escape($section)) { throw "README.md missing section: $section" }
     }
-    if ($BuildInfo -notmatch "target=x86_64-pc-windows-msvc") { throw "wrong target in BUILD-INFO.txt" }
+    if ($Readme -notmatch "https://github.com/swchen44/zellij_intranet") {
+        throw "README.md missing project GitHub link"
+    }
+
+    $BuildInfo = Get-Content (Join-Path $PackageRoot "BUILD-INFO.txt") -Raw
+    $IsOfficial = $BuildInfo -match "source=official-zellij-release"
+    if ($IsOfficial) {
+        foreach ($required in @("version=", "source=", "variant=", "target=", "upstream_asset=", "upstream_binary_sha256=", "runtime_network_required=")) {
+            if ($BuildInfo -notmatch [regex]::Escape($required)) { throw "BUILD-INFO.txt missing $required" }
+        }
+        if ($BuildInfo -notmatch "target=windows-x86_64") { throw "wrong official target in BUILD-INFO.txt" }
+        if ($BuildInfo -notmatch "runtime_network_required=false") { throw "official package requires runtime network" }
+    } else {
+        foreach ($required in @("version=", "source_commit=", "source_describe=", "rust_toolchain=", "target=", "feature_profile=", "bundled_plugins=")) {
+            if ($BuildInfo -notmatch [regex]::Escape($required)) { throw "BUILD-INFO.txt missing $required" }
+        }
+        if ($BuildInfo -notmatch "target=x86_64-pc-windows-msvc") { throw "wrong target in BUILD-INFO.txt" }
+    }
     if ($BuildInfo -notmatch "bundled_plugins=true") { throw "builtin plugins are not declared bundled" }
 
     $Forbidden = Get-ChildItem -LiteralPath $PackageRoot -Recurse -File | Where-Object {
@@ -62,10 +84,20 @@ try {
         $ManifestPath = [IO.Path]::ChangeExtension($InputPath, ".manifest.json")
         if (Test-Path $ManifestPath -PathType Leaf) {
             $Manifest = Get-Content $ManifestPath -Raw | ConvertFrom-Json
-            if ($Manifest.target -ne "x86_64-pc-windows-msvc") { throw "manifest target is incorrect" }
-            if ($Manifest.feature_profile -ne "terminal-only") { throw "manifest feature profile is incorrect" }
-            if ($Manifest.sha256.ToLowerInvariant() -ne (Get-FileHash -Algorithm SHA256 $InputPath).Hash.ToLowerInvariant()) {
-                throw "manifest SHA-256 does not match archive"
+            $Actual = (Get-FileHash -Algorithm SHA256 $InputPath).Hash.ToLowerInvariant()
+            if ($IsOfficial) {
+                if ($Manifest.target -ne "windows-x86_64") { throw "official manifest target is incorrect" }
+                if ($Manifest.variant -ne "full" -and $Manifest.variant -ne "no-web") { throw "official manifest variant is invalid" }
+                if ($Manifest.package_sha256.ToLowerInvariant() -ne $Actual) {
+                    throw "official manifest package SHA-256 does not match archive"
+                }
+                if ($Manifest.package_readme -ne "README.md") { throw "official manifest README is incorrect" }
+            } else {
+                if ($Manifest.target -ne "x86_64-pc-windows-msvc") { throw "manifest target is incorrect" }
+                if ($Manifest.feature_profile -ne "terminal-only") { throw "manifest feature profile is incorrect" }
+                if ($Manifest.sha256.ToLowerInvariant() -ne $Actual) {
+                    throw "manifest SHA-256 does not match archive"
+                }
             }
         }
     }

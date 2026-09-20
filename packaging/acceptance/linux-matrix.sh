@@ -49,6 +49,11 @@ remote_result="$(ssh "${ssh_opts[@]}" "$HOST" "
 set -eu
 test -x '$package_dir/zellij'
 test -f '$package_dir/BUILD-INFO.txt'
+test -f '$package_dir/README.md'
+grep -Fq '## Prerequisites' '$package_dir/README.md'
+grep -Fq '## Add to PATH' '$package_dir/README.md'
+grep -Fq '## Boundary' '$package_dir/README.md'
+grep -Fq '## Links' '$package_dir/README.md'
 mkdir -p '$remote_tmp/home' '$remote_tmp/config' '$remote_tmp/cache'
 file '$package_dir/zellij'
 if readelf -lW '$package_dir/zellij' | grep -q ' INTERP '; then exit 1; fi
