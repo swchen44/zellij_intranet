@@ -18,7 +18,7 @@ require_executable() {
 }
 
 require_file "$PACKAGING/targets.toml"
-require_file "$PACKAGING/README.md"
+require_file "$ROOT/README.md"
 require_file "$PACKAGING/OFFICIAL-BINARY.md"
 require_file "$PACKAGING/BUILDING-OFFLINE.md"
 require_file "$PACKAGING/package_official.py"

@@ -1,8 +1,35 @@
-# Zellij offline packages
+# Zellij offline packages for intranet
 
 目前正式優先流程是使用官方 release binary，再由
-[`package_official.py`](package_official.py) 下載、驗證與重新封裝。操作方式與
-驗收標準記錄在 [`OFFICIAL-BINARY.md`](OFFICIAL-BINARY.md)。
+[`packaging/package_official.py`](packaging/package_official.py) 下載、驗證與重新封裝。
+操作方式與驗收標準記錄在 [`packaging/OFFICIAL-BINARY.md`](packaging/OFFICIAL-BINARY.md)。
+
+從 project 根目錄執行：
+
+```bash
+python3 packaging/package_official.py package \
+  --version v0.45.1 \
+  --output-dir dist/official
+```
+
+目前已驗證並放在 [`dist/official/`](dist/official/) 的發佈檔案：
+
+```text
+dist/official/zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz
+dist/official/zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip
+```
+
+兩個 archive 都附有同名 `.sha256` 與 `.manifest.json`。Linux archive 用於
+Windows Terminal → SSH → Linux 的情境；Windows ZIP 用於 Windows Terminal 上的
+native Zellij。Windows Terminal、SSH、Zellij、Yazi、Claude Code 與 Codex 仍是各自
+的執行環境，不會被混裝進同一個 archive。
+
+離線驗證已存在的 package，不需要重新下載官方 release：
+
+```bash
+python3 packaging/package_official.py verify \
+  dist/official/zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz
+```
 
 `package_official.py package` 預設使用官方 `full` variant；只有明確指定
 `--variant no-web` 時才產生不含 Web capability 的精簡版本。
@@ -13,13 +40,14 @@ feature profile 或固定 source commit；一般內網交付不需要執行 sour
 source-build fallback 仍產生獨立的 Linux x86_64 portable package。Zellij、Yazi、
 Claude Code 與 Codex 各自封裝；Zellij archive 不包含其他 command，也不需要 Rust、
 Cargo、OpenSSL、WASM toolchain 或 Cargo registry 才能在 runtime 執行。一般交付請
-使用 [`OFFICIAL-BINARY.md`](OFFICIAL-BINARY.md) 的官方 binary workflow。
+使用 [`packaging/OFFICIAL-BINARY.md`](packaging/OFFICIAL-BINARY.md) 的官方 binary
+workflow。
 
 借用的 `surfer` build/test runner、低記憶體 OOM 修正、persistent swap、offline
 fallback、第二條 SSH status 連線與已知限制，集中記錄在
-[`docs/superpowers/LESSONS-LEARNED.md`](../docs/superpowers/LESSONS-LEARNED.md)。
+[`docs/superpowers/LESSONS-LEARNED.md`](docs/superpowers/LESSONS-LEARNED.md)。
 
-目前 Linux artifact 固定為：
+Source-build fallback 的 Linux target 固定為：
 
 ```text
 zellij-x86_64-unknown-linux-musl.tar.gz
@@ -46,9 +74,9 @@ SSH alias。
 產生 protobuf 與 bundled WASM plugins，再以預裝的 musl linker 建立 Linux binary。
 它不呼叫會自動下載 `cross` 的 `cargo xtask ci cross`，適合內網 build runner。
 
-## Windows build modes
+## Windows source-build fallback
 
-正式 Windows build 由 Windows native MSVC runner 執行：
+如果官方 release binary 不符合需求，才使用 Windows native MSVC runner 自行 build：
 
 ```powershell
 ./packaging/build-windows.ps1
@@ -69,17 +97,18 @@ cargo +1.95.0 install --locked cargo-xwin
 ./packaging/package-windows-local.sh
 ```
 
-Windows 初版 package 固定使用 `terminal-only` feature profile：保留 bundled WASM
-plugins，但不啟用 web/share capability，也不拉入 vendored OpenSSL。這符合
+自行 build 的 Windows package 固定使用 `terminal-only` feature profile：保留 bundled
+WASM plugins，但不啟用 web/share capability，也不拉入 vendored OpenSSL。這符合
 Windows Terminal + Zellij + Yazi 的兩個使用情境；若日後需要 Zellij web/share，應
-另做 feature profile 與完整 Windows native build，不要直接混用此 ZIP。
+另做 feature profile 與完整 Windows native build，不要直接混用此 ZIP。官方 release
+binary 的 `full` variant 則使用前面列出的 `dist/official/` ZIP。
 
 Mac candidate 的 manifest 會標示 `build_method=cargo-xwin-macos`、
 `feature_profile=terminal-only` 與
 `runtime_verification=pending-windows-host`。不能在 Mac 上執行 `zellij.exe`、
 驗證 Windows loader 或宣稱 Windows Terminal/ConPTY 通過。
 
-## Package and verify
+## Source-build package and verify
 
 ```bash
 ./packaging/package-linux.sh
@@ -106,7 +135,7 @@ plugin directory 下輸出至少 12 個 `.wasm`。
 ```bash
 ZELLIJ_SSH_HOST=surfer \
   ./packaging/acceptance/linux-matrix.sh \
-  dist/zellij-x86_64-unknown-linux-musl.tar.gz
+  dist/official/zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz
 ```
 
 若要進入互動測試，使用：
@@ -114,7 +143,7 @@ ZELLIJ_SSH_HOST=surfer \
 ```bash
 ZELLIJ_SSH_HOST=surfer \
   ./packaging/acceptance/ssh-linux.sh \
-  dist/zellij-x86_64-unknown-linux-musl.tar.gz
+  dist/official/zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz
 ```
 
 該 script 會透過 `ssh -tt` 啟動 sandbox binary；Windows Terminal 端只負責

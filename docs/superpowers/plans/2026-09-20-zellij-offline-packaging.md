@@ -67,7 +67,7 @@ native MSVC rebuild 與 Windows Terminal runtime gate 尚未完成。
 
 **Files:**
 - Create: `packaging/targets.toml`
-- Create: `packaging/README.md`
+- Create: `README.md`
 - Read: `zellij/Cargo.toml`
 - Read: `zellij/rust-toolchain.toml`
 
@@ -124,7 +124,7 @@ native MSVC rebuild 與 Windows Terminal runtime gate 尚未完成。
 
 - [x] **Step 4: 寫清楚兩個情境的邊界**
 
-  在 `packaging/README.md` 記錄：情境一使用 Linux binary，Windows 端只使用 Windows Terminal + SSH；情境二使用 Windows binary，子程式由 Windows shell 提供。明確寫出 Yazi 不由此 package 安裝。
+  在 `README.md` 記錄：情境一使用 Linux binary，Windows 端只使用 Windows Terminal + SSH；情境二使用 Windows binary，子程式由 Windows shell 提供。明確寫出 Yazi 不由此 package 安裝。
 
 - [x] **Step 5: 驗證設定與來源一致**
 
@@ -209,7 +209,7 @@ native MSVC rebuild 與 Windows Terminal runtime gate 尚未完成。
 - Create: `packaging/build-linux.sh`
 - Create: `packaging/package-linux.sh`
 - Create: `packaging/verify-linux.sh`
-- Modify: `packaging/README.md`
+- Modify: `README.md`
 
 **Interfaces:**
 - Consumes: Task 1 的 `x86_64-unknown-linux-musl` target、Task 2 的 build runner、Zellij builtin plugin assets。
@@ -303,7 +303,7 @@ native MSVC rebuild 與 Windows Terminal runtime gate 尚未完成。
 - Create: `packaging/package-windows-local.sh`
 - Create: `packaging/check-windows-local-tools.sh`
 - Create: `packaging/verify-windows.ps1`
-- Modify: `packaging/README.md`
+- Modify: `README.md`
 
 **Interfaces:**
 - Consumes: Task 1 的 `x86_64-pc-windows-msvc` target、Task 2 的 Windows build runner、Zellij builtin plugin assets。
@@ -396,7 +396,7 @@ native MSVC rebuild 與 Windows Terminal runtime gate 尚未完成。
 - Create: `packaging/verify-package.ps1`
 - Modify: `packaging/build-linux.sh`
 - Modify: `packaging/build-windows.ps1`
-- Modify: `packaging/README.md`
+- Modify: `README.md`
 
 **Interfaces:**
 - Consumes: Task 3 與 Task 4 的 binary/archive。
@@ -444,7 +444,7 @@ native MSVC rebuild 與 Windows Terminal runtime gate 尚未完成。
 **Files:**
 - Create: `packaging/acceptance/linux-matrix.md`
 - Create: `packaging/acceptance/linux-matrix.sh`
-- Modify: `packaging/README.md`
+- Modify: `README.md`
 
 **Interfaces:**
 - Consumes: Task 3 的 Linux archive、`surfer` host inventory、SSH、可限制外連的測試環境。
@@ -538,7 +538,7 @@ native MSVC rebuild 與 Windows Terminal runtime gate 尚未完成。
 **Files:**
 - Create: `packaging/acceptance/ssh-linux.md`
 - Create: `packaging/acceptance/ssh-linux.sh`
-- Modify: `packaging/README.md`
+- Modify: `README.md`
 
 **Interfaces:**
 - Consumes: Task 3 的 `x86_64-unknown-linux-musl` archive、`surfer` Linux SSH host、Windows Terminal、使用者已安裝的 Claude Code/Codex/Yazi。
@@ -580,7 +580,7 @@ native MSVC rebuild 與 Windows Terminal runtime gate 尚未完成。
 **Files:**
 - Create: `packaging/acceptance/windows-native.md`
 - Create: `packaging/acceptance/windows-native.ps1`
-- Modify: `packaging/README.md`
+- Modify: `README.md`
 
 **Interfaces:**
 - Consumes: Task 4 的 Windows archive、Windows Terminal、Windows shell、使用者已安裝的 Claude Code/Codex/Yazi。
@@ -616,7 +616,7 @@ native MSVC rebuild 與 Windows Terminal runtime gate 尚未完成。
 ### Task 9: 內網交付、升版與 optional MSI
 
 **Files:**
-- Modify: `packaging/README.md`
+- Modify: `README.md`
 - Modify: `zellij/.github/workflows/release.yml` only when CI publishing is approved
 - Read: `zellij/wix/main.wxs`
 

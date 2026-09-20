@@ -1,7 +1,6 @@
 # The upstream Zellij source checkout is kept locally for build/reference work.
 # The public zellij_intranet repository contains only docs and packaging.
 /zellij/
-/dist/
 
 # Local operating-system and editor files.
 .DS_Store
