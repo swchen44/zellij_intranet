@@ -35,6 +35,7 @@ fi
 mkdir -p "$STAGE" "$ROOT/dist"
 install -m 0755 "$BINARY" "$STAGE/zellij"
 install -m 0644 "$ROOT/LICENSE.md" "$STAGE/LICENSE.md"
+install -m 0644 "$ROOT/docs/ZELLIJ-USER-GUIDE.md" "$STAGE/ZELLIJ-USER-GUIDE.md"
 
 cat > "$STAGE/README.txt" <<EOF
 Zellij $VERSION portable Linux package
@@ -43,6 +44,7 @@ Target: $TARGET
 Source: $SOURCE_DESCRIBE ($SOURCE_COMMIT)
 
 Run ./zellij --version or ./zellij setup --check.
+Read ZELLIJ-USER-GUIDE.md for pane, tab, session and SSH workflows.
 This package does not include Rust, Cargo, Yazi, Claude Code, Codex, SSH, or a shell.
 Builtin WASM plugins are embedded in the zellij binary and do not require network access.
 EOF
@@ -73,6 +75,11 @@ protoc, musl tools, Yazi, SSH, and network access are not runtime prerequisites.
 export PATH="\$PWD:\$PATH"
 zellij
 ```
+
+## User guide
+
+Read `ZELLIJ-USER-GUIDE.md` for common pane, tab, session, SSH, Windows Terminal and
+Yazi workflows. It is included for offline use.
 
 ## Boundary
 

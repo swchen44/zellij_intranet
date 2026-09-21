@@ -25,7 +25,7 @@ try {
         throw "package not found: $InputPath"
     }
 
-    foreach ($required in @("zellij.exe", "README.md", "README.txt", "LICENSE.md", "BUILD-INFO.txt")) {
+    foreach ($required in @("zellij.exe", "README.md", "ZELLIJ-USER-GUIDE.md", "README.txt", "LICENSE.md", "BUILD-INFO.txt")) {
         if (-not (Test-Path (Join-Path $PackageRoot $required) -PathType Leaf)) { throw "missing package file: $required" }
     }
 
@@ -35,6 +35,10 @@ try {
     }
     if ($Readme -notmatch "https://github.com/swchen44/zellij_intranet") {
         throw "README.md missing project GitHub link"
+    }
+    $Guide = Get-Content (Join-Path $PackageRoot "ZELLIJ-USER-GUIDE.md") -Raw
+    foreach ($section in @("## 1. Help、版本與設定檢查", "## 3. 情境一：", "## 4. 情境二：", "## 官方資料來源")) {
+        if ($Guide -notmatch [regex]::Escape($section)) { throw "ZELLIJ-USER-GUIDE.md missing section: $section" }
     }
 
     $BuildInfo = Get-Content (Join-Path $PackageRoot "BUILD-INFO.txt") -Raw

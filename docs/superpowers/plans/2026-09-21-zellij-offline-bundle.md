@@ -42,17 +42,18 @@ dist/official/
 
 - [x] Official release version and target matrix are explicit in `packaging/targets.toml`.
 - [x] Python packager accepts `--version`, defaults to `full`, and supports explicit `no-web`.
-- [x] Package root includes `README.md`, compatibility `README.txt`, `BUILD-INFO.txt`,
-  `LICENSE.md`, and the platform binary.
+- [x] Package root includes `README.md`, offline `ZELLIJ-USER-GUIDE.md`, compatibility
+  `README.txt`, `BUILD-INFO.txt`, `LICENSE.md`, and the platform binary.
 - [x] Package README documents prerequisites, Linux/PowerShell usage, PATH, boundary, links,
   runtime network policy, and full/no-web behavior.
-- [x] Manifest identifies `README.md` as the package README.
+- [x] Manifest identifies `README.md` as the package README and
+  `ZELLIJ-USER-GUIDE.md` as the offline user guide.
 
 ### 2. Tests and verification
 
-- [x] Unit tests check Linux/Windows archive members and README content.
+- [x] Unit tests check Linux/Windows archive members, README content and user guide content.
 - [x] Local verifier checks archive SHA-256, manifest, binary, executable bit, README sections,
-  and project/upstream links.
+  offline user guide sections, and project/upstream links.
 - [x] Packaging contract test checks docs, targets, scripts, README generation, and archive
   ignore rules.
 - [x] Repackage official `v0.45.1` full artifacts and run local verify on both targets.

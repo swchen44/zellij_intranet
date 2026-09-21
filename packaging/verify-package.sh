@@ -28,6 +28,7 @@ if [[ -f "$INPUT" && "$INPUT" == *.tar.gz ]]; then
 	grep -Fq '"product": "zellij"' "$manifest"
 	grep -Fq '"target": "x86_64-unknown-linux-musl"' "$manifest"
 	grep -Fq '"bundled_plugins": true' "$manifest"
+	grep -Fq '"package_user_guide": "ZELLIJ-USER-GUIDE.md"' "$manifest"
 	archive_sha256="$(sha256sum "$INPUT" | awk '{print $1}')"
 	grep -Fq "\"sha256\": \"$archive_sha256\"" "$manifest" \
 		|| {

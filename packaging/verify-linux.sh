@@ -32,6 +32,7 @@ die() {
 [[ -d "$PACKAGE_DIR" ]] || die "missing package root"
 [[ -x "$PACKAGE_DIR/zellij" ]] || die "missing executable zellij"
 [[ -f "$PACKAGE_DIR/README.md" ]] || die "missing README.md"
+[[ -f "$PACKAGE_DIR/ZELLIJ-USER-GUIDE.md" ]] || die "missing ZELLIJ-USER-GUIDE.md"
 [[ -f "$PACKAGE_DIR/README.txt" ]] || die "missing README.txt"
 [[ -f "$PACKAGE_DIR/LICENSE.md" ]] || die "missing LICENSE.md"
 [[ -f "$PACKAGE_DIR/BUILD-INFO.txt" ]] || die "missing BUILD-INFO.txt"

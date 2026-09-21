@@ -37,6 +37,7 @@ echo "$file_output" | grep -Eiq 'PE32\+.*x86-64' \
 mkdir -p "$STAGE" "$ROOT/dist"
 install -m 0644 "$BINARY" "$STAGE/zellij.exe"
 install -m 0644 "$ROOT/LICENSE.md" "$STAGE/LICENSE.md"
+install -m 0644 "$ROOT/docs/ZELLIJ-USER-GUIDE.md" "$STAGE/ZELLIJ-USER-GUIDE.md"
 
 cat > "$STAGE/README.txt" <<EOF
 Zellij $VERSION portable Windows candidate package
@@ -48,6 +49,7 @@ Runtime verification: pending Windows host
 Feature profile: $FEATURE_PROFILE (no default features; plugins_from_target)
 
 Run .\\zellij.exe --version or .\\zellij.exe setup --check in Windows Terminal.
+Read ZELLIJ-USER-GUIDE.md for pane, tab, session and Windows Terminal workflows.
 This package does not include Rust, Cargo, Yazi, Claude Code, Codex, SSH, or a shell.
 Builtin WASM plugins are embedded in the zellij binary and do not require network access.
 The web/share capability is excluded from this terminal-only package; it is not needed for
@@ -81,6 +83,11 @@ OpenSSL, Visual Studio, Yazi, SSH, and network access are not runtime prerequisi
 zellij.exe
 \`\`\`
 
+## User guide
+
+Read `ZELLIJ-USER-GUIDE.md` for common pane, tab, session, SSH, Windows Terminal and
+Yazi workflows. It is included for offline use.
+
 ## Boundary
 
 This source-fallback package contains Zellij only. It does not contain Yazi, SSH,
@@ -108,7 +115,7 @@ build_jobs=${ZELLIJ_WINDOWS_BUILD_JOBS:-1}
 EOF
 
 rm -f "$ARCHIVE" "$MANIFEST" "$CHECKSUM"
-(cd "$STAGE_ROOT" && zip -q -X "$ARCHIVE" "$NAME/zellij.exe" "$NAME/README.md" "$NAME/README.txt" "$NAME/LICENSE.md" "$NAME/BUILD-INFO.txt")
+(cd "$STAGE_ROOT" && zip -q -X "$ARCHIVE" "$NAME/zellij.exe" "$NAME/README.md" "$NAME/README.txt" "$NAME/ZELLIJ-USER-GUIDE.md" "$NAME/LICENSE.md" "$NAME/BUILD-INFO.txt")
 archive_sha256="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
 printf '%s  %s\n' "$archive_sha256" "$(basename "$ARCHIVE")" > "$CHECKSUM"
 

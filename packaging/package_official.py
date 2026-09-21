@@ -237,6 +237,12 @@ def _runtime_readme_markdown(version: str, variant: str, target: str) -> str:
             f"{run_command} setup --dump-plugins <temporary-plugin-directory>",
             "```",
             "",
+            "## User guide",
+            "",
+            "The archive contains `ZELLIJ-USER-GUIDE.md` with the common pane, tab, session, "
+            "SSH, Windows Terminal, Yazi and troubleshooting workflows. It is included for "
+            "offline use and does not require the project repository or network access.",
+            "",
             "## Boundary",
             "",
             "- This is a Zellij binary package, not a complete terminal workstation bundle.",
@@ -287,6 +293,7 @@ def _write_runtime_readme_compatibility(
                 "",
                 f"Run ./{binary} from this directory.",
                 "Read README.md for prerequisites, PATH instructions, boundaries, and links.",
+                "Read ZELLIJ-USER-GUIDE.md for pane, tab, session and SSH/Windows workflows.",
                 "This package is self-contained and does not download anything at runtime.",
                 "Yazi, shells, SSH and Windows Terminal are packaged separately.",
                 "",
@@ -333,8 +340,10 @@ def create_package(
     downloaded_archive_sha256: str,
     output_dir: Path,
     license_source: Path,
+    guide_source: Path | None = None,
 ) -> Path:
     spec = TARGETS[target]
+    guide_source = guide_source or Path(__file__).resolve().parents[1] / "docs" / "ZELLIJ-USER-GUIDE.md"
     output_dir.mkdir(parents=True, exist_ok=True)
     package_name = f"{_package_stem(version, variant, target)}.{spec.archive_format}"
     output = output_dir / package_name
@@ -346,6 +355,8 @@ def create_package(
             raise FileNotFoundError(f"missing upstream binary: {binary_source}")
         if not license_source.is_file():
             raise FileNotFoundError(f"missing license source: {license_source}")
+        if not guide_source.is_file():
+            raise FileNotFoundError(f"missing user guide source: {guide_source}")
 
         binary = package_root / spec.binary_name
         shutil.copy2(binary_source, binary)
@@ -356,6 +367,7 @@ def create_package(
         _write_runtime_readme_compatibility(
             package_root / "README.txt", version, variant, target
         )
+        shutil.copy2(guide_source, package_root / "ZELLIJ-USER-GUIDE.md")
         _write_build_info(
             package_root / "BUILD-INFO.txt",
             version,
@@ -370,6 +382,7 @@ def create_package(
             package_root / "BUILD-INFO.txt",
             package_root / "README.md",
             package_root / "README.txt",
+            package_root / "ZELLIJ-USER-GUIDE.md",
             package_root / "LICENSE.md",
         ]
         if spec.archive_format == "tar.gz":
@@ -422,6 +435,7 @@ def create_package(
                 "runtime_network_required": False,
                 "arm64_runtime_verification": "not-run",
                 "package_readme": "README.md",
+                "package_user_guide": "ZELLIJ-USER-GUIDE.md",
             },
             indent=2,
         )
@@ -438,6 +452,7 @@ def package_release(
     targets: list[str],
     output_dir: Path,
     license_source: Path,
+    guide_source: Path,
     ca_bundle: Path | None,
 ) -> list[Path]:
     version = normalize_version(version)
@@ -483,6 +498,7 @@ def package_release(
                     downloaded_archive_sha256=archive_sha256,
                     output_dir=output_dir,
                     license_source=license_source,
+                    guide_source=guide_source,
                 )
             )
         return packages
@@ -520,6 +536,8 @@ def verify_package(package: Path) -> None:
         raise ValueError(f"manifest contains unsupported variant: {variant!r}")
     if manifest.get("package_readme") != "README.md":
         raise ValueError("manifest must identify README.md as the package README")
+    if manifest.get("package_user_guide") != "ZELLIJ-USER-GUIDE.md":
+        raise ValueError("manifest must identify ZELLIJ-USER-GUIDE.md as the package user guide")
     binary = TARGETS[target].binary_name
     with tempfile.TemporaryDirectory(prefix="zellij-verify-") as temporary:
         extracted = Path(temporary)
@@ -540,6 +558,13 @@ def verify_package(package: Path) -> None:
             raise ValueError("package README.md is missing the project GitHub link")
         if "https://github.com/zellij-org/zellij/releases/tag/" not in readme:
             raise ValueError("package README.md is missing the upstream release link")
+        guide_path = extracted / "ZELLIJ-USER-GUIDE.md"
+        if not guide_path.is_file():
+            raise ValueError("package is missing ZELLIJ-USER-GUIDE.md")
+        guide = guide_path.read_text(encoding="utf-8")
+        for section in ("## 1. Help、版本與設定檢查", "## 3. 情境一：", "## 4. 情境二：", "## 官方資料來源"):
+            if section not in guide:
+                raise ValueError(f"package user guide is missing section: {section}")
     print(f"[verify] package SHA-256 {package.name}: {actual}")
 
 
@@ -575,12 +600,14 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "package":
             targets = args.targets or list(TARGETS)
             license_source = Path(__file__).resolve().parent / "LICENSE.md"
+            guide_source = Path(__file__).resolve().parents[1] / "docs" / "ZELLIJ-USER-GUIDE.md"
             packages = package_release(
                 version=args.version,
                 variant=args.variant,
                 targets=targets,
                 output_dir=args.output_dir,
                 license_source=license_source,
+                guide_source=guide_source,
                 ca_bundle=args.ca_bundle,
             )
             for package in packages:

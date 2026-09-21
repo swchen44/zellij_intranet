@@ -31,10 +31,15 @@ fallback 的版本與官方 `v0.45.1` artifact 混寫。
 ```text
 zellij 或 zellij.exe
 README.md       # 解壓後使用說明，必須隨 package 一起驗證
+ZELLIJ-USER-GUIDE.md # 使用場景、快捷鍵與操作手冊，隨 package 一起提供
 README.txt      # 舊流程相容檔
 BUILD-INFO.txt
 LICENSE.md
 ```
+
+完整的使用場景說明請先閱讀
+[`docs/ZELLIJ-USER-GUIDE.md`](docs/ZELLIJ-USER-GUIDE.md)。同一份文件也會放入每個
+Linux/Windows package 的 `ZELLIJ-USER-GUIDE.md`，解壓後不需要連外網即可查閱。
 
 ## How：使用者步驟
 
@@ -153,6 +158,8 @@ Linux x86_64 的 `surfer` temporary-directory runtime acceptance 已完成並保
 - project GitHub、upstream release 與 upstream documentation links
 
 這個 README 必須跟 binary 一起進 archive；不能只在 project 根目錄提供文件。
+完整操作手冊則以 package root 的 `ZELLIJ-USER-GUIDE.md` 提供；README 只做快速啟動與
+package boundary，兩者都必須跟 binary 一起進 archive。
 
 ## GitHub Release 與大檔案防範
 
@@ -178,5 +185,6 @@ assets，再同步到內網檔案區；runtime 不需要連 GitHub。相關做�
 - 實作計畫：[`docs/superpowers/plans/2026-09-21-zellij-offline-bundle.md`](docs/superpowers/plans/2026-09-21-zellij-offline-bundle.md)
 - Windows 驗收計畫：[`docs/plans/2026-09-21-zellij-windows-acceptance.md`](docs/plans/2026-09-21-zellij-windows-acceptance.md)
 - 官方 binary 操作說明：[`packaging/OFFICIAL-BINARY.md`](packaging/OFFICIAL-BINARY.md)
+- 使用場景說明書：[`docs/ZELLIJ-USER-GUIDE.md`](docs/ZELLIJ-USER-GUIDE.md)
 - source fallback build 說明：[`packaging/BUILDING-OFFLINE.md`](packaging/BUILDING-OFFLINE.md)
 - 實際經驗與限制：[`docs/superpowers/LESSONS-LEARNED.md`](docs/superpowers/LESSONS-LEARNED.md)

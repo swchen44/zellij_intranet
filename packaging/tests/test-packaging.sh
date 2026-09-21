@@ -19,6 +19,7 @@ require_executable() {
 
 require_file "$PACKAGING/targets.toml"
 require_file "$ROOT/README.md"
+require_file "$ROOT/docs/ZELLIJ-USER-GUIDE.md"
 require_file "$PACKAGING/OFFICIAL-BINARY.md"
 require_file "$PACKAGING/BUILDING-OFFLINE.md"
 require_file "$PACKAGING/package_official.py"
@@ -67,10 +68,16 @@ grep -Fq 'Get-FileHash' "$PACKAGING/verify-windows.ps1" \
 	|| fail "Windows verifier does not validate SHA-256"
 grep -Fq 'README.md' "$PACKAGING/package_official.py" \
 	|| fail "official packager does not include README.md"
+grep -Fq 'ZELLIJ-USER-GUIDE.md' "$PACKAGING/package_official.py" \
+	|| fail "official packager does not include the user guide"
 grep -Fq 'README.md' "$PACKAGING/package-linux.sh" \
 	|| fail "Linux source fallback does not include README.md"
+grep -Fq 'ZELLIJ-USER-GUIDE.md' "$PACKAGING/package-linux.sh" \
+	|| fail "Linux source fallback does not include the user guide"
 grep -Fq 'README.md' "$PACKAGING/package-windows-local.sh" \
 	|| fail "Windows local fallback does not include README.md"
+grep -Fq 'ZELLIJ-USER-GUIDE.md' "$PACKAGING/package-windows-local.sh" \
+	|| fail "Windows local fallback does not include the user guide"
 grep -Fq '/dist/official/*.tar.gz' "$ROOT/.gitignore" \
 	|| fail "release tarballs are not protected from Git commits"
 grep -Fq '/dist/official/*.zip' "$ROOT/.gitignore" \

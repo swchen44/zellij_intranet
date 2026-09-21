@@ -16,10 +16,13 @@ x86_64 Linux build/test runner，不是正式部署主機；正式交付不能�
 - default variant：`full`；`no-web` 只能明確指定。
 - Linux target：`x86_64-unknown-linux-musl`。
 - Windows target：`x86_64-pc-windows-msvc`。
-- package root：binary、`README.md`、相容用 `README.txt`、`BUILD-INFO.txt`、`LICENSE.md`。
+- package root：binary、快速使用的 `README.md`、完整離線手冊 `ZELLIJ-USER-GUIDE.md`、
+  相容用 `README.txt`、`BUILD-INFO.txt`、`LICENSE.md`。
 - package metadata：每個 archive 同時有 `.sha256` 與 `.manifest.json`。
-- `README.md` 是現在的使用文件 contract；它包含 prerequisites、Linux/Windows usage、
-  PATH、boundary 與 GitHub links，並由 unit test/local verifier 檢查。
+- `README.md` 是快速使用文件 contract；它包含 prerequisites、Linux/Windows usage、
+  PATH、boundary 與 GitHub links，並由 unit test/local verifier 檢查。完整 pane/tab/session、
+  SSH、Windows Terminal、Yazi 與 troubleshooting 場景另放在
+  `ZELLIJ-USER-GUIDE.md`，同一份檔案必須進 archive，不能只放在 project root。
 - ARM64 本輪不打包、不做 runtime verification。
 
 ### Source-build fallback baseline

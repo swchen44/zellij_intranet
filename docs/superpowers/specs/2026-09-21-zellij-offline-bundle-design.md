@@ -26,6 +26,7 @@
 ```text
 zellij 或 zellij.exe
 README.md
+ZELLIJ-USER-GUIDE.md
 README.txt
 BUILD-INFO.txt
 LICENSE.md
@@ -39,6 +40,10 @@ LICENSE.md
 - builtin WASM plugin 說明
 - package boundary、ARM64 狀態、`full`/`no-web` Web capability boundary
 - project GitHub、upstream release、upstream documentation links
+
+`ZELLIJ-USER-GUIDE.md` 是隨 archive 交付的完整操作手冊，包含 pane、tab、session、
+SSH、Windows Terminal、Yazi 整合、Help 與常見排查。README 做快速啟動與 boundary，
+完整場景說明分開保存，讓兩者都能在無外網環境閱讀。
 
 `README.txt` 保留給舊自動化流程；它只需要指向 `README.md`，不取代 Markdown contract。
 
@@ -83,9 +88,10 @@ local verification 必須檢查：
 1. package checksum 與 manifest 一致。
 2. archive 只含 allowlisted runtime files。
 3. binary 存在；Linux binary 保留 executable bit。
-4. `README.md` 存在且有 `Prerequisites`、`PATH`、`Boundary`、`Links` sections。
-5. package README 有 project 與 upstream links。
-6. Linux/Windows unit contract 不需要 target host runtime 才可執行。
+4. `README.md` 存在且有 `Prerequisites`、`PATH`、`User guide`、`Boundary`、`Links` sections。
+5. `ZELLIJ-USER-GUIDE.md` 存在且包含兩種使用情境與官方資料來源。
+6. package README 有 project 與 upstream links。
+7. Linux/Windows unit contract 不需要 target host runtime 才可執行。
 
 Linux `surfer` 的既有 runtime acceptance 是歷史證據，包含 `--version`、`setup --check`、
 default layout 與 bundled plugin dump；依目前決策，本次只更新文件與 package contract，
@@ -98,4 +104,3 @@ GitHub Release tag `zellij-v0.45.1` 發佈。內網交付流程是：下載 Rele
 `.sha256` → 將完整 archive 與 metadata 同步到內網檔案區 → 使用者離線解壓執行。
 
 Project URL：<https://github.com/swchen44/zellij_intranet>
-
