@@ -1,6 +1,6 @@
 {
   "package": "zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip",
-  "package_sha256": "5dd56b1a86727ad5ba7c7bfd978bddf64f7a12caf9018bc321552d4cebcabf22",
+  "package_sha256": "14e35e6f941fbb38a0b55e3dd428a25d9cca79851b410d51b673e58f0b0a9938",
   "version": "v0.45.1",
   "source": "official-zellij-release",
   "variant": "full",
@@ -10,5 +10,6 @@
   "downloaded_archive_sha256": "b854e7b223e67d0705c5f685ef50541c38a57981b13624d09c92bed419b6f80d",
   "runtime_network_required": false,
   "arm64_runtime_verification": "not-run",
-  "package_readme": "README.md"
+  "package_readme": "README.md",
+  "package_user_guide": "ZELLIJ-USER-GUIDE.md"
 }

@@ -1,6 +1,6 @@
 {
   "package": "zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz",
-  "package_sha256": "54f4a0b2ea33aa67b5529cbc8ceb0e722cfca3ae882bcf0d650c0beb27e2f7ec",
+  "package_sha256": "2de59319328b8e585ed06c506f4f98e6ac92f98a9668ec019344c3b9be001d06",
   "version": "v0.45.1",
   "source": "official-zellij-release",
   "variant": "full",
@@ -10,5 +10,6 @@
   "downloaded_archive_sha256": "40bcc2e03f5d5ae8e054e39f676081fe12ab70871506996ba595834c3718eefc",
   "runtime_network_required": false,
   "arm64_runtime_verification": "not-run",
-  "package_readme": "README.md"
+  "package_readme": "README.md",
+  "package_user_guide": "ZELLIJ-USER-GUIDE.md"
 }
