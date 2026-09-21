@@ -179,11 +179,18 @@ Release 內容應包含每個 target 的：
 assets，再同步到內網檔案區；runtime 不需要連 GitHub。相關做法與大小限制見
 [`packaging/OFFICIAL-BINARY.md`](packaging/OFFICIAL-BINARY.md)。
 
+如果公司 Windows Chrome 對 Zellij ZIP 的下載或最後解壓縮步驟阻擋，Release 另外提供
+明確標記為 `diag-*` 的 diagnostic ZIP。它們不是正式 package，而是用來比較 root
+executable、top-level directory、`bin/` 路徑與 stored/deflate 壓縮方式；請依
+[`docs/plans/2026-09-22-zellij-download-block-test-plan.md`](docs/plans/2026-09-22-zellij-download-block-test-plan.md)
+逐一測試並保留 Chrome/Defender 的結果。
+
 ## 文件位置
 
 - 設計規格：[`docs/superpowers/specs/2026-09-21-zellij-offline-bundle-design.md`](docs/superpowers/specs/2026-09-21-zellij-offline-bundle-design.md)
 - 實作計畫：[`docs/superpowers/plans/2026-09-21-zellij-offline-bundle.md`](docs/superpowers/plans/2026-09-21-zellij-offline-bundle.md)
 - Windows 驗收計畫：[`docs/plans/2026-09-21-zellij-windows-acceptance.md`](docs/plans/2026-09-21-zellij-windows-acceptance.md)
+- Windows ZIP 下載阻擋測試：[`docs/plans/2026-09-22-zellij-download-block-test-plan.md`](docs/plans/2026-09-22-zellij-download-block-test-plan.md)
 - 官方 binary 操作說明：[`packaging/OFFICIAL-BINARY.md`](packaging/OFFICIAL-BINARY.md)
 - 使用場景說明書：[`docs/ZELLIJ-USER-GUIDE.md`](docs/ZELLIJ-USER-GUIDE.md)
 - source fallback build 說明：[`packaging/BUILDING-OFFLINE.md`](packaging/BUILDING-OFFLINE.md)

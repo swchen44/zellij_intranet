@@ -1,0 +1,14 @@
+{
+  "diagnostic": true,
+  "production_package": false,
+  "archive_name": "zellij-v0.45.1-full-x86_64-pc-windows-msvc-diag-flat-store.zip",
+  "source_package": "zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip",
+  "variant": "flat-store",
+  "description": "The normal package files at the ZIP root, stored without compression.",
+  "compression": "stored",
+  "top_level_directory": false,
+  "binary_path_after_extract": "zellij.exe",
+  "zellij_sha256": "7c34f38921e6884873a9922bfdd4907f4d68fd0a2dd930ce357e4c7cb23f6f42",
+  "package_sha256": "8ad3471a70beea87bbd7b399d013da67ed76e0f1791bf90bdc23ca6cdeb3aec0",
+  "test_command": "zellij.exe --version"
+}

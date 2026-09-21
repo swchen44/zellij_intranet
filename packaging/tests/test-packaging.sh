@@ -23,7 +23,9 @@ require_file "$ROOT/docs/ZELLIJ-USER-GUIDE.md"
 require_file "$PACKAGING/OFFICIAL-BINARY.md"
 require_file "$PACKAGING/BUILDING-OFFLINE.md"
 require_file "$PACKAGING/package_official.py"
+require_file "$PACKAGING/make-download-test-zips.py"
 require_file "$PACKAGING/tests/test_official_package.py"
+require_file "$PACKAGING/tests/test_download_variants.py"
 require_executable "$PACKAGING/check-build-tools.sh"
 require_executable "$PACKAGING/build-linux.sh"
 require_executable "$PACKAGING/package-linux.sh"
@@ -43,6 +45,7 @@ require_file "$PACKAGING/verify-package.ps1"
 require_file "$ROOT/docs/superpowers/specs/2026-09-21-zellij-offline-bundle-design.md"
 require_file "$ROOT/docs/superpowers/plans/2026-09-21-zellij-offline-bundle.md"
 require_file "$ROOT/docs/plans/2026-09-21-zellij-windows-acceptance.md"
+require_file "$ROOT/docs/plans/2026-09-22-zellij-download-block-test-plan.md"
 
 grep -Fq 'linux_targets = ["x86_64-unknown-linux-musl"]' "$PACKAGING/targets.toml" \
 	|| fail "Linux target is not fixed to x86_64-unknown-linux-musl"
@@ -78,6 +81,8 @@ grep -Fq 'README.md' "$PACKAGING/package-windows-local.sh" \
 	|| fail "Windows local fallback does not include README.md"
 grep -Fq 'ZELLIJ-USER-GUIDE.md' "$PACKAGING/package-windows-local.sh" \
 	|| fail "Windows local fallback does not include the user guide"
+python3 "$PACKAGING/make-download-test-zips.py" --help >/dev/null \
+	|| fail "diagnostic ZIP packager does not run"
 grep -Fq '/dist/official/*.tar.gz' "$ROOT/.gitignore" \
 	|| fail "release tarballs are not protected from Git commits"
 grep -Fq '/dist/official/*.zip' "$ROOT/.gitignore" \
@@ -98,5 +103,6 @@ bash -n \
 	"$PACKAGING/manifest-windows.sh"
 
 python3 "$PACKAGING/tests/test_official_package.py"
+python3 "$PACKAGING/tests/test_download_variants.py"
 
 echo "test-packaging: passed"

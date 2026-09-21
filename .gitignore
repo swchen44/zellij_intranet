@@ -14,3 +14,4 @@ __pycache__/
 # Keep the matching .sha256 and .manifest.json evidence files tracked.
 /dist/official/*.tar.gz
 /dist/official/*.zip
+/dist/diagnostic/*.zip
