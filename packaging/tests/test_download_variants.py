@@ -46,6 +46,24 @@ class DownloadVariantTests(unittest.TestCase):
 
             self.assertEqual(binary_hashes, {module.sha256_bytes(b"same-binary")})
 
+    def test_same_bytes_alias_changes_only_the_asset_name(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "canonical.zip"
+            with zipfile.ZipFile(source, "w") as archive:
+                archive.writestr("zellij.exe", b"same-binary")
+                archive.writestr("README.md", b"readme")
+
+            output = module.write_same_bytes_alias(source, root / "diagnostic")
+            self.assertEqual(output.read_bytes(), source.read_bytes())
+
+            manifest = json.loads(
+                output.with_suffix(".manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["variant"], "same-bytes-alt-name")
+            self.assertEqual(manifest["package_sha256"], module.sha256_file(source))
+            self.assertEqual(manifest["archive_name"], output.name)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import zipfile
 from pathlib import Path
 
@@ -135,6 +136,37 @@ def write_variant(source: Path, output_dir: Path, variant_name: str) -> Path:
     return output
 
 
+def write_same_bytes_alias(source: Path, output_dir: Path) -> Path:
+    """Copy the canonical ZIP byte-for-byte under a different asset name."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output = output_dir / "zellij-windows-package-test-same-bytes.zip"
+    shutil.copyfile(source, output)
+    with zipfile.ZipFile(source) as archive:
+        binary = archive.read("zellij.exe")
+    package_sha256 = sha256_file(output)
+    manifest = {
+        "diagnostic": True,
+        "production_package": False,
+        "archive_name": output.name,
+        "source_package": source.name,
+        "variant": "same-bytes-alt-name",
+        "description": "Byte-for-byte copy of the canonical ZIP with a different Release asset name.",
+        "compression": "unchanged-from-source",
+        "top_level_directory": False,
+        "binary_path_after_extract": "zellij.exe",
+        "zellij_sha256": sha256_bytes(binary),
+        "package_sha256": package_sha256,
+        "test_command": "zellij.exe --version",
+    }
+    output.with_suffix(".manifest.json").write_text(
+        json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+    )
+    output.with_name(output.name + ".sha256").write_text(
+        f"{package_sha256}  {output.name}\n", encoding="utf-8"
+    )
+    return output
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, required=True, help="canonical Windows Zellij ZIP")
@@ -151,6 +183,7 @@ def main() -> int:
     for name in args.variant or VARIANTS:
         output = write_variant(args.source, args.output_dir, name)
         print(output)
+    print(write_same_bytes_alias(args.source, args.output_dir))
     return 0
 
 

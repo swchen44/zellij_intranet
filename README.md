@@ -183,7 +183,9 @@ assets，再同步到內網檔案區；runtime 不需要連 GitHub。相關做�
 明確標記為 `diag-*` 的 diagnostic ZIP。它們不是正式 package，而是用來比較 root
 executable、top-level directory、`bin/` 路徑與 stored/deflate 壓縮方式；請依
 [`docs/plans/2026-09-22-zellij-download-block-test-plan.md`](docs/plans/2026-09-22-zellij-download-block-test-plan.md)
-逐一測試並保留 Chrome/Defender 的結果。
+逐一測試並保留 Chrome/Defender 的結果。其中 `zellij-windows-package-test-same-bytes.zip`
+是 canonical ZIP 的 byte-for-byte 改名副本，用來單獨測試公司規則是否命中原始 asset
+檔名或 URL；`diag-nested-bin-deflate` 則是最接近 Yazi layout 的候選包。
 
 ## 文件位置
 
