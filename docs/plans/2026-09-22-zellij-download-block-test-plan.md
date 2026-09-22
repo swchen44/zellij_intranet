@@ -111,3 +111,28 @@ Yazi 的 package layout：top-level directory、`bin/zellij.exe`、deflate compr
 因此可以照 Yazi 的封裝方向做正式候選包，但第一階段不直接覆蓋 canonical asset：先保留
 官方 layout 作 fallback，再以 `nested-bin-deflate` 的 layout 做不同名稱的候選 Release
 asset。待公司 Windows 測試確認後，才決定是否將候選 layout 提升為正式 Windows package。
+
+## 已知 Windows 實測結果
+
+截至 2026-09-22，使用者在公司 Windows Release 環境回報：
+
+| Asset | 下載 | 解壓 | 執行驗證 |
+| --- | --- | --- | --- |
+| canonical `zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip` | 失敗 | 未完成 | 未測 |
+| `zellij-windows-package-test-same-bytes.zip` | 失敗 | 未完成 | 未測 |
+| `diag-nested-bin-deflate.zip` | 成功 | 成功 | 尚未回報 |
+
+`same-bytes-alt-name` 與 canonical 使用完全相同的 ZIP bytes，因此「只有原始 asset
+檔名或 URL」不是充分解釋。`diag-nested-bin-deflate` 使用相同的 `zellij.exe`，但改成
+top-level directory 與 `bin/zellij.exe`，目前結果支持 ZIP layout、metadata 或完整
+archive fingerprint 觸發公司掃描的假設；仍不能單獨證明是哪一個欄位。
+
+下一步只需要在解壓後測試：
+
+```powershell
+.\<解壓資料夾>\bin\zellij.exe --version
+.\<解壓資料夾>\bin\zellij.exe setup --check
+```
+
+兩項都成功後，才將這個 layout 建立為正式 Windows candidate package；canonical package
+仍保留作 fallback。
