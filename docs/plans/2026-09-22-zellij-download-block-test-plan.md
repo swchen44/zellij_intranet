@@ -1,5 +1,9 @@
 # Zellij Windows ZIP 下載阻擋比較與測試計畫
 
+> 這份文件保留 2026-09-22 的 diagnostic 比較結果。新的正式候選包使用
+> `zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.zip`；本文件中的 canonical
+> 舊名稱指的是當時尚未改成 `zellij_bin/` 的 baseline。
+
 ## 目的
 
 公司 Windows Chrome 可以下載 Yazi Windows ZIP，但下載 Zellij Windows ZIP 後似乎在

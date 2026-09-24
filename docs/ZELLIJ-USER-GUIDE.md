@@ -10,11 +10,12 @@ shell、SSH、Windows Terminal、Yazi、Claude Code 或 Codex。
 
 ## 1. Help、版本與設定檢查
 
-在 package 解壓後的目錄執行：
+在 `zellij_bin` 解壓後目錄執行。預設 archive 只有一個頂層資料夾 `zellij_bin/`：
 
 Linux：
 
 ```sh
+cd zellij_bin
 ./zellij --help
 ./zellij --version
 ./zellij attach --help
@@ -26,6 +27,7 @@ Linux：
 Windows PowerShell：
 
 ```powershell
+cd .\zellij_bin
 .\zellij.exe --help
 .\zellij.exe --version
 .\zellij.exe attach --help
@@ -70,10 +72,10 @@ Yazi 與其他 CLI 都在 Linux 主機執行。
 ```sh
 ssh user@linux-host
 cd /path/to/project
-/path/to/zellij-v0.45.1-full-x86_64-unknown-linux-musl/zellij attach --create survey
+~/local/bin/zellij_bin/zellij attach --create survey
 ```
 
-如果 package 目錄已加入 PATH：
+如果完整的 `zellij_bin` 已複製到 `~/local/bin/zellij_bin` 並加入 PATH：
 
 ```sh
 zellij attach --create survey
@@ -124,7 +126,7 @@ Windows host 上可以執行。
 PowerShell：
 
 ```powershell
-cd C:\Tools\zellij-v0.45.1-full-x86_64-pc-windows-msvc
+cd C:\Tools\zellij-package\zellij_bin
 .\zellij.exe --version
 .\zellij.exe setup --check
 .\zellij.exe attach --create windows-work
@@ -133,7 +135,7 @@ cd C:\Tools\zellij-v0.45.1-full-x86_64-pc-windows-msvc
 如果要讓目前 PowerShell 找到 package：
 
 ```powershell
-$env:Path = "$PWD;$env:Path"
+$env:Path = "$HOME\local\bin\zellij_bin;$env:Path"
 zellij.exe attach --create windows-work
 ```
 

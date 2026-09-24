@@ -16,10 +16,10 @@ The `no-web` variant remains an explicit alternative and is not the default rele
 Run from a Windows PowerShell session without Rust/Cargo in the runtime `PATH`:
 
 ```powershell
-.\packaging\acceptance\windows-native.ps1 dist\official\zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip
+.\packaging\acceptance\windows-native.ps1 dist\official\zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.zip
 ```
 
-The script verifies the archive, package `README.md` sections, `zellij.exe --version`,
+The script verifies the `zellij_bin` archive layout, package `README.md` sections, `zellij.exe --version`,
 `setup --check`, default layout dump, at least 12 builtin WASM plugins, and SHA-256 when a
 companion file is present.
 

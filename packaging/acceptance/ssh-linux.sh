@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ARCHIVE="${1:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)/dist/zellij-x86_64-unknown-linux-musl.tar.gz}"
+ARCHIVE="${1:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)/dist/official/zellij-v0.45.1-full-x86_64-unknown-linux-musl-flat-bin.tar.gz}"
 HOST="${ZELLIJ_SSH_HOST:-surfer}"
 
 [[ -f "$ARCHIVE" ]] || {
@@ -22,7 +22,9 @@ cleanup() {
 trap cleanup EXIT
 
 ssh "${ssh_opts[@]}" "$HOST" "tar -xzf - -C '$remote_tmp'" < "$ARCHIVE"
-if ssh "${ssh_opts[@]}" "$HOST" "test -x '$remote_tmp/zellij'"; then
+if ssh "${ssh_opts[@]}" "$HOST" "test -x '$remote_tmp/zellij_bin/zellij'"; then
+	package_dir="$remote_tmp/zellij_bin"
+elif ssh "${ssh_opts[@]}" "$HOST" "test -x '$remote_tmp/zellij'"; then
 	package_dir="$remote_tmp"
 else
 	package_dir="$remote_tmp/zellij-x86_64-unknown-linux-musl"

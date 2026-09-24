@@ -8,6 +8,14 @@ INPUT="${1:-}"
 }
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [[ -f "$INPUT" && "$INPUT" == *.tar.gz ]]; then
+	official_manifest="${INPUT%.tar.gz}.manifest.json"
+	if [[ -f "$official_manifest" ]] && grep -Fq '"source": "official-zellij-release"' "$official_manifest"; then
+		exec python3 "$ROOT/packaging/package_official.py" verify "$INPUT"
+	fi
+fi
+
 "$ROOT/packaging/verify-linux.sh" "$INPUT"
 
 if [[ -f "$INPUT" && "$INPUT" == *.tar.gz ]]; then

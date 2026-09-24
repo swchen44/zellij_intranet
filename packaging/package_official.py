@@ -43,6 +43,8 @@ TARGETS = {
     ),
 }
 
+LAYOUTS = {"flat-bin", "standard"}
+
 
 def normalize_version(value: str) -> str:
     value = value.strip()
@@ -145,25 +147,77 @@ def extract_upstream_archive(archive: Path, destination: Path) -> None:
     raise ValueError(f"unsupported upstream archive: {archive.name}")
 
 
-def _package_stem(version: str, variant: str, target: str) -> str:
+def normalize_layout(value: str) -> str:
+    if value not in LAYOUTS:
+        raise ValueError(f"unsupported package layout: {value}")
+    return value
+
+
+def _package_stem(version: str, variant: str, target: str, layout: str = "flat-bin") -> str:
     spec = TARGETS[target]
-    return f"zellij-{normalize_version(version)}-{variant}-{spec.upstream_target}"
+    suffix = "-flat-bin" if normalize_layout(layout) == "flat-bin" else ""
+    return f"zellij-{normalize_version(version)}-{variant}-{spec.upstream_target}{suffix}"
 
 
-def _runtime_readme_markdown(version: str, variant: str, target: str) -> str:
+def _runtime_readme_markdown(
+    version: str, variant: str, target: str, layout: str = "flat-bin"
+) -> str:
+    layout = normalize_layout(layout)
     binary = TARGETS[target].binary_name
     if target == "linux-x86_64":
         platform_name = "Linux x86_64"
         run_command = f"./{binary}"
         version_command = f"./{binary} --version"
-        path_command = 'export PATH="$PWD:$PATH"'
+        path_command = (
+            'export PATH="$HOME/local/bin/zellij_bin:$PATH"'
+            if layout == "flat-bin"
+            else 'export PATH="$PWD:$PATH"'
+        )
         path_run_command = "zellij"
+        copy_command = (
+            'cp -R ./zellij_bin "$HOME/local/bin/"'
+            if layout == "flat-bin"
+            else "# Keep this extracted package directory together"
+        )
     else:
         platform_name = "Windows x86_64 (PowerShell)"
         run_command = f".\\{binary}"
         version_command = f".\\{binary} --version"
-        path_command = '$env:Path = "$PWD;$env:Path"'
+        path_command = (
+            '$env:Path = "$HOME\\local\\bin\\zellij_bin;$env:Path"'
+            if layout == "flat-bin"
+            else '$env:Path = "$PWD;$env:Path"'
+        )
         path_run_command = "zellij.exe"
+        copy_command = (
+            'Copy-Item -Recurse .\\zellij_bin "$HOME\\local\\bin\\"'
+            if layout == "flat-bin"
+            else "# Keep this extracted package directory together"
+        )
+
+    if layout == "flat-bin":
+        path_instruction = (
+            "For `flat-bin`, copy the complete `zellij_bin` directory to a user-local bin "
+            "directory, then add that directory to `PATH` for the current shell:"
+        )
+        layout_note = (
+            "The Linux example uses `~/local/bin/zellij_bin`; keep the same user-local "
+            "directory convention on Windows when practical."
+        )
+    else:
+        path_instruction = "For this standard package, add the extracted package directory to `PATH`:"
+        layout_note = "Keep the complete extracted package directory together."
+
+    extraction_note = (
+        "the extracted `zellij_bin` directory"
+        if layout == "flat-bin"
+        else "the extracted package directory"
+    )
+    package_note = (
+        "Keep the complete `zellij_bin` directory together."
+        if layout == "flat-bin"
+        else "Keep the complete extracted package directory together."
+    )
 
     if variant == "full":
         web_boundary = (
@@ -185,9 +239,10 @@ def _runtime_readme_markdown(version: str, variant: str, target: str) -> str:
             f"- Version: `{normalize_version(version)}`",
             f"- Variant: `{variant}`",
             f"- Target: `{target}`",
+            f"- Package layout: `{layout}`",
             "",
             "This archive is prepared for the `zellij_intranet` project. Extract the complete "
-            "archive and run the platform binary from the extracted directory. The package "
+            f"archive and run the platform binary from {extraction_note}. The package "
             "does not download anything at runtime.",
             "",
             "## Prerequisites",
@@ -217,15 +272,18 @@ def _runtime_readme_markdown(version: str, variant: str, target: str) -> str:
             "",
             "## Add to PATH",
             "",
-            "For the current shell only, add this package directory to `PATH`:",
+            path_instruction,
+            layout_note,
             "",
             "```sh" if target == "linux-x86_64" else "```powershell",
+            copy_command,
             path_command,
             path_run_command,
             "```",
             "",
-            "Do not copy only the binary to another directory if you also need the release "
-            "metadata; keep the complete extracted package together for traceability.",
+            package_note + " Do not copy only the binary; "
+            "the package README, guide, license, and build metadata are part of the delivery "
+            "contract.",
             "",
             "## Built-in plugins",
             "",
@@ -271,17 +329,27 @@ def _runtime_readme_markdown(version: str, variant: str, target: str) -> str:
     )
 
 
-def _write_runtime_readme(path: Path, version: str, variant: str, target: str) -> None:
+def _write_runtime_readme(
+    path: Path, version: str, variant: str, target: str, layout: str
+) -> None:
     path.write_text(
-        _runtime_readme_markdown(version, variant, target),
+        _runtime_readme_markdown(version, variant, target, layout),
         encoding="utf-8",
     )
 
 
 def _write_runtime_readme_compatibility(
-    path: Path, version: str, variant: str, target: str
+    path: Path, version: str, variant: str, target: str, layout: str
 ) -> None:
+    layout = normalize_layout(layout)
     binary = TARGETS[target].binary_name
+    run_path = f"zellij_bin/{binary}" if layout == "flat-bin" else binary
+    copy_note = (
+        "For the default flat-bin layout, copy the complete zellij_bin directory to a "
+        "user-local bin directory and add it to PATH."
+        if layout == "flat-bin"
+        else "Keep the complete extracted package directory together and add it to PATH."
+    )
     path.write_text(
         "\n".join(
             [
@@ -291,7 +359,8 @@ def _write_runtime_readme_compatibility(
                 f"Variant: {variant}",
                 f"Target: {target}",
                 "",
-                f"Run ./{binary} from this directory.",
+                f"Run ./{run_path} from the extracted package directory.",
+                copy_note,
                 "Read README.md for prerequisites, PATH instructions, boundaries, and links.",
                 "Read ZELLIJ-USER-GUIDE.md for pane, tab, session and SSH/Windows workflows.",
                 "This package is self-contained and does not download anything at runtime.",
@@ -310,6 +379,7 @@ def _write_build_info(
     target: str,
     upstream_asset: str,
     upstream_binary_sha256: str,
+    layout: str,
 ) -> None:
     path.write_text(
         "\n".join(
@@ -320,7 +390,10 @@ def _write_build_info(
                 f"target={target}",
                 f"upstream_asset={upstream_asset}",
                 f"upstream_binary_sha256={upstream_binary_sha256}",
+                f"package_layout={normalize_layout(layout)}",
+                f"package_root={'zellij_bin' if layout == 'flat-bin' else '.'}",
                 "runtime_network_required=false",
+                "bundled_plugins=true",
                 "arm64_runtime_verification=not-run",
                 "",
             ]
@@ -341,15 +414,19 @@ def create_package(
     output_dir: Path,
     license_source: Path,
     guide_source: Path | None = None,
+    layout: str = "flat-bin",
 ) -> Path:
     spec = TARGETS[target]
+    layout = normalize_layout(layout)
     guide_source = guide_source or Path(__file__).resolve().parents[1] / "docs" / "ZELLIJ-USER-GUIDE.md"
     output_dir.mkdir(parents=True, exist_ok=True)
-    package_name = f"{_package_stem(version, variant, target)}.{spec.archive_format}"
+    package_name = f"{_package_stem(version, variant, target, layout)}.{spec.archive_format}"
     output = output_dir / package_name
 
     with tempfile.TemporaryDirectory(prefix="zellij-package-") as temporary:
         package_root = Path(temporary)
+        payload_root = package_root / "zellij_bin" if layout == "flat-bin" else package_root
+        payload_root.mkdir(parents=True, exist_ok=True)
         binary_source = stage_dir / spec.binary_name
         if not binary_source.is_file():
             raise FileNotFoundError(f"missing upstream binary: {binary_source}")
@@ -358,32 +435,38 @@ def create_package(
         if not guide_source.is_file():
             raise FileNotFoundError(f"missing user guide source: {guide_source}")
 
-        binary = package_root / spec.binary_name
+        binary = payload_root / spec.binary_name
         shutil.copy2(binary_source, binary)
         if target == "linux-x86_64":
             binary.chmod(0o755)
-        shutil.copy2(license_source, package_root / "LICENSE.md")
-        _write_runtime_readme(package_root / "README.md", version, variant, target)
+        shutil.copy2(license_source, payload_root / "LICENSE.md")
+        _write_runtime_readme(payload_root / "README.md", version, variant, target, layout)
         _write_runtime_readme_compatibility(
-            package_root / "README.txt", version, variant, target
+            payload_root / "README.txt", version, variant, target, layout
         )
-        shutil.copy2(guide_source, package_root / "ZELLIJ-USER-GUIDE.md")
+        shutil.copy2(guide_source, payload_root / "ZELLIJ-USER-GUIDE.md")
         _write_build_info(
-            package_root / "BUILD-INFO.txt",
+            payload_root / "BUILD-INFO.txt",
             version,
             variant,
             target,
             upstream_asset,
             upstream_binary_sha256,
+            layout,
         )
 
         members = [
-            package_root / spec.binary_name,
-            package_root / "BUILD-INFO.txt",
-            package_root / "README.md",
-            package_root / "README.txt",
-            package_root / "ZELLIJ-USER-GUIDE.md",
-            package_root / "LICENSE.md",
+            payload_root / spec.binary_name,
+            payload_root / "BUILD-INFO.txt",
+            payload_root / "README.md",
+            payload_root / "README.txt",
+            payload_root / "ZELLIJ-USER-GUIDE.md",
+            payload_root / "LICENSE.md",
+        ]
+        archive_root = "zellij_bin" if layout == "flat-bin" else ""
+        archive_members = [
+            f"{archive_root}/{member.name}" if archive_root else member.name
+            for member in members
         ]
         if spec.archive_format == "tar.gz":
             with output.open("wb") as raw_output:
@@ -394,8 +477,8 @@ def create_package(
                     mtime=0,
                 ) as compressed_output:
                     with tarfile.open(fileobj=compressed_output, mode="w") as archive:
-                        for member in members:
-                            info = tarfile.TarInfo(member.name)
+                        for member, archive_member in zip(members, archive_members):
+                            info = tarfile.TarInfo(archive_member)
                             info.size = member.stat().st_size
                             info.mode = member.stat().st_mode & 0o777
                             info.mtime = 0
@@ -407,8 +490,8 @@ def create_package(
                                 archive.addfile(info, source)
         else:
             with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-                for member in members:
-                    info = zipfile.ZipInfo(member.name, date_time=(1980, 1, 1, 0, 0, 0))
+                for member, archive_member in zip(members, archive_members):
+                    info = zipfile.ZipInfo(archive_member, date_time=(1980, 1, 1, 0, 0, 0))
                     info.compress_type = zipfile.ZIP_DEFLATED
                     info.create_system = 3
                     info.external_attr = (member.stat().st_mode & 0o777) << 16
@@ -432,6 +515,9 @@ def create_package(
                 "upstream_asset": upstream_asset,
                 "upstream_binary_sha256": upstream_binary_sha256,
                 "downloaded_archive_sha256": downloaded_archive_sha256,
+                "layout": layout,
+                "package_root": "zellij_bin" if layout == "flat-bin" else ".",
+                "package_files": archive_members,
                 "runtime_network_required": False,
                 "arm64_runtime_verification": "not-run",
                 "package_readme": "README.md",
@@ -454,6 +540,7 @@ def package_release(
     license_source: Path,
     guide_source: Path,
     ca_bundle: Path | None,
+    layout: str,
 ) -> list[Path]:
     version = normalize_version(version)
     with tempfile.TemporaryDirectory(prefix="zellij-download-") as temporary:
@@ -499,6 +586,7 @@ def package_release(
                     output_dir=output_dir,
                     license_source=license_source,
                     guide_source=guide_source,
+                    layout=layout,
                 )
             )
         return packages
@@ -534,6 +622,11 @@ def verify_package(package: Path) -> None:
     variant = manifest.get("variant")
     if variant not in {"full", "no-web"}:
         raise ValueError(f"manifest contains unsupported variant: {variant!r}")
+    layout = normalize_layout(manifest.get("layout", "standard"))
+    package_root = manifest.get("package_root", ".")
+    expected_root = "zellij_bin" if layout == "flat-bin" else "."
+    if package_root != expected_root:
+        raise ValueError(f"manifest package root does not match layout: {package_root!r}")
     if manifest.get("package_readme") != "README.md":
         raise ValueError("manifest must identify README.md as the package README")
     if manifest.get("package_user_guide") != "ZELLIJ-USER-GUIDE.md":
@@ -542,12 +635,30 @@ def verify_package(package: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="zellij-verify-") as temporary:
         extracted = Path(temporary)
         extract_upstream_archive(package, extracted)
-        binary_path = extracted / binary
+        payload_root = extracted / "zellij_bin" if layout == "flat-bin" else extracted
+        expected_files = {
+            f"zellij_bin/{name}" if layout == "flat-bin" else name
+            for name in (binary, "BUILD-INFO.txt", "README.md", "README.txt", "ZELLIJ-USER-GUIDE.md", "LICENSE.md")
+        }
+        actual_files = {
+            path.relative_to(extracted).as_posix()
+            for path in extracted.rglob("*")
+            if path.is_file()
+        }
+        if actual_files != expected_files:
+            raise ValueError(
+                f"package file set does not match {layout} contract: "
+                f"expected {sorted(expected_files)}, got {sorted(actual_files)}"
+            )
+        declared_files = manifest.get("package_files")
+        if declared_files is not None and sorted(declared_files) != sorted(expected_files):
+            raise ValueError("manifest package_files does not match the archive file set")
+        binary_path = payload_root / binary
         if not binary_path.is_file():
             raise ValueError(f"package is missing {binary}")
         if target == "linux-x86_64" and binary_path.stat().st_mode & 0o111 == 0:
             raise ValueError("Linux zellij binary is not executable")
-        readme_path = extracted / "README.md"
+        readme_path = payload_root / "README.md"
         if not readme_path.is_file():
             raise ValueError("package is missing README.md")
         readme = readme_path.read_text(encoding="utf-8")
@@ -558,7 +669,9 @@ def verify_package(package: Path) -> None:
             raise ValueError("package README.md is missing the project GitHub link")
         if "https://github.com/zellij-org/zellij/releases/tag/" not in readme:
             raise ValueError("package README.md is missing the upstream release link")
-        guide_path = extracted / "ZELLIJ-USER-GUIDE.md"
+        if layout == "flat-bin" and "~/local/bin/zellij_bin" not in readme:
+            raise ValueError("flat-bin package README.md is missing the user-local PATH workflow")
+        guide_path = payload_root / "ZELLIJ-USER-GUIDE.md"
         if not guide_path.is_file():
             raise ValueError("package is missing ZELLIJ-USER-GUIDE.md")
         guide = guide_path.read_text(encoding="utf-8")
@@ -575,6 +688,7 @@ def _parser() -> argparse.ArgumentParser:
     package = commands.add_parser("package", help="download and package an official release")
     package.add_argument("--version", required=True, help="release version, for example v0.45.1")
     package.add_argument("--variant", choices=("no-web", "full"), default="full")
+    package.add_argument("--layout", choices=tuple(sorted(LAYOUTS)), default="flat-bin")
     package.add_argument(
         "--target",
         action="append",
@@ -609,6 +723,7 @@ def main(argv: list[str] | None = None) -> int:
                 license_source=license_source,
                 guide_source=guide_source,
                 ca_bundle=args.ca_bundle,
+                layout=args.layout,
             )
             for package in packages:
                 verify_package(package)

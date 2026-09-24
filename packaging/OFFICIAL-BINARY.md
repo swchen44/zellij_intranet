@@ -28,6 +28,15 @@ python3 packaging/package_official.py package \
   --output-dir dist/official
 ```
 
+省略 `--layout` 時預設產生 `flat-bin`。若要重現舊的 archive root，才明確指定：
+
+```bash
+python3 packaging/package_official.py package \
+  --version v0.45.1 \
+  --layout standard \
+  --output-dir dist/official
+```
+
 省略 `--variant` 時預設為 `full`。這是正式打包指令。若只需要不含 Web capability
 的精簡版本，才使用：
 
@@ -67,23 +76,29 @@ downloaded_archive_sha256
 
 ```text
 dist/official/
-├── zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz
-├── zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz.sha256
-├── zellij-v0.45.1-full-x86_64-unknown-linux-musl.manifest.json
-├── zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip
-├── zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip.sha256
-└── zellij-v0.45.1-full-x86_64-pc-windows-msvc.manifest.json
+├── zellij-v0.45.1-full-x86_64-unknown-linux-musl-flat-bin.tar.gz
+├── zellij-v0.45.1-full-x86_64-unknown-linux-musl-flat-bin.tar.gz.sha256
+├── zellij-v0.45.1-full-x86_64-unknown-linux-musl-flat-bin.manifest.json
+├── zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.zip
+├── zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.zip.sha256
+└── zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.manifest.json
 ```
 
 每個 archive 都包含：
 
 ```text
-zellij 或 zellij.exe
-README.md
-README.txt
-BUILD-INFO.txt
-LICENSE.md
+zellij_bin/
+  zellij 或 zellij.exe
+  README.md
+  README.txt
+  BUILD-INFO.txt
+  ZELLIJ-USER-GUIDE.md
+  LICENSE.md
 ```
+
+使用者可以把完整的 `zellij_bin` 資料夾複製到 `~/local/bin/zellij_bin/`，再把這個
+資料夾加入 `PATH`。不要只複製 binary，因為 package README、操作手冊、license 與
+provenance metadata 都是交付內容。
 
 `README.md` 是 package 內的主要使用文件，必須包含 prerequisites、Linux/Windows
 執行方式、PATH、boundary、`full`/`no-web` 說明與 project/upstream links。`README.txt`
@@ -93,8 +108,8 @@ LICENSE.md
 可以直接檢查兩個 package 的內部文件：
 
 ```bash
-tar -xOzf dist/official/zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz README.md
-unzip -p dist/official/zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip README.md
+tar -xOzf dist/official/zellij-v0.45.1-full-x86_64-unknown-linux-musl-flat-bin.tar.gz zellij_bin/README.md
+unzip -p dist/official/zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.zip zellij_bin/README.md
 ```
 
 上述內容應可看到 `Prerequisites`、`Add to PATH`、`Boundary`、`Links` 四個 section。
@@ -108,8 +123,11 @@ Python 驗證：
 
 ```bash
 python3 packaging/package_official.py verify \
-  dist/official/zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz
+  dist/official/zellij-v0.45.1-full-x86_64-unknown-linux-musl-flat-bin.tar.gz
 ```
+
+Verifier 也接受舊的 direct-root `standard` archive，並以 manifest 的 `layout` 欄位
+判斷兩者；新產物固定使用 `flat-bin`。
 
 Windows 端可用 PowerShell 執行相同 Python script 的 `verify` 子命令；驗證流程
 不會呼叫網路。
@@ -151,3 +169,8 @@ manifest。現有歷史若已有先前提交的 archive，不在本次工作中�
 
 Project：<https://github.com/swchen44/zellij_intranet>
 Upstream：<https://github.com/zellij-org/zellij>
+
+目前本機 flat-bin 產物與 checksum/manifest 已完成驗證；公開
+`zellij-v0.45.1` Release 尚未在本次變更中替換 assets。現有公開 Windows asset 的
+diagnostic 狀態必須在另一次 Release maintenance 中處理，不能把本機產物 hash 當成
+已上傳證據。

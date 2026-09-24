@@ -44,6 +44,8 @@ require_file "$PACKAGING/verify-windows.ps1"
 require_file "$PACKAGING/verify-package.ps1"
 require_file "$ROOT/docs/superpowers/specs/2026-09-21-zellij-offline-bundle-design.md"
 require_file "$ROOT/docs/superpowers/plans/2026-09-21-zellij-offline-bundle.md"
+require_file "$ROOT/docs/superpowers/specs/2026-09-24-zellij-flat-bin-design.md"
+require_file "$ROOT/docs/superpowers/plans/2026-09-24-zellij-flat-bin.md"
 require_file "$ROOT/docs/plans/2026-09-21-zellij-windows-acceptance.md"
 require_file "$ROOT/docs/plans/2026-09-22-zellij-download-block-test-plan.md"
 
@@ -69,8 +71,16 @@ grep -Fq 'Compress-Archive' "$PACKAGING/package-windows.ps1" \
 	|| fail "Windows package script does not create ZIP"
 grep -Fq 'Get-FileHash' "$PACKAGING/verify-windows.ps1" \
 	|| fail "Windows verifier does not validate SHA-256"
+grep -Fq 'zellij_bin' "$PACKAGING/verify-windows.ps1" \
+	|| fail "Windows verifier does not detect flat-bin root"
+grep -Fq 'six-file contract' "$PACKAGING/verify-windows.ps1" \
+	|| fail "Windows verifier does not enforce package file contract"
 grep -Fq 'README.md' "$PACKAGING/package_official.py" \
 	|| fail "official packager does not include README.md"
+grep -Fq 'flat-bin' "$PACKAGING/package_official.py" \
+	|| fail "official packager does not include flat-bin layout"
+grep -Fq 'zellij_bin' "$PACKAGING/package_official.py" \
+	|| fail "official packager does not include zellij_bin root"
 grep -Fq 'ZELLIJ-USER-GUIDE.md' "$PACKAGING/package_official.py" \
 	|| fail "official packager does not include the user guide"
 grep -Fq 'README.md' "$PACKAGING/package-linux.sh" \

@@ -1,6 +1,6 @@
 # Zellij 內網封裝經驗與 Lessons Learned
 
-最後更新：2026-09-21
+最後更新：2026-09-24
 
 這份文件保存目前實際 build、package 與 SSH 驗證得到的經驗。`surfer` 是借用的
 x86_64 Linux build/test runner，不是正式部署主機；正式交付不能依賴它長期存在。
@@ -16,8 +16,11 @@ x86_64 Linux build/test runner，不是正式部署主機；正式交付不能�
 - default variant：`full`；`no-web` 只能明確指定。
 - Linux target：`x86_64-unknown-linux-musl`。
 - Windows target：`x86_64-pc-windows-msvc`。
-- package root：binary、快速使用的 `README.md`、完整離線手冊 `ZELLIJ-USER-GUIDE.md`、
-  相容用 `README.txt`、`BUILD-INFO.txt`、`LICENSE.md`。
+- package root：單一頂層 `zellij_bin/`，其內直接放 binary、快速使用的 `README.md`、
+  完整離線手冊 `ZELLIJ-USER-GUIDE.md`、相容用 `README.txt`、`BUILD-INFO.txt`、
+  `LICENSE.md`。
+- default artifact 名稱加入 `-flat-bin`，例如
+  `zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.zip`。
 - package metadata：每個 archive 同時有 `.sha256` 與 `.manifest.json`。
 - `README.md` 是快速使用文件 contract；它包含 prerequisites、Linux/Windows usage、
   PATH、boundary 與 GitHub links，並由 unit test/local verifier 檢查。完整 pane/tab/session、
@@ -31,7 +34,7 @@ x86_64 Linux build/test runner，不是正式部署主機；正式交付不能�
 - source commit：`474ea0cef620c83d6ec05a7c28c7f80c4f63bbbb`。
 - Git describe：`v0.44.1-122-g474ea0cef`。
 - Rust toolchain：`1.95.0`。
-- artifact：`zellij-x86_64-unknown-linux-musl.tar.gz`。
+- artifact：`zellij-x86_64-unknown-linux-musl.tar.gz`，只代表舊 source fallback layout。
 - source fallback Windows feature profile：`terminal-only`（`--no-default-features --features plugins_from_target`）。
 - 歷史 source artifact SHA-256：`be41a661f6f3c00b2e2a1b0dbc40313c05461018f2e91ba8b1f73d116dc46ca6`。
 
@@ -120,12 +123,18 @@ cargo +1.95.0 build --locked --release --target x86_64-unknown-linux-musl
   x86_64 upstream binary SHA-256 為
   `7c34f38921e6884873a9922bfdd4907f4d68fd0a2dd930ce357e4c7cb23f6f42`。這兩個是
   upstream binary hash；重新封裝後的 archive hash 另記在 `dist/official/*.sha256`。
-- 本次 release archive hash：Linux
-  `54f4a0b2ea33aa67b5529cbc8ceb0e722cfca3ae882bcf0d650c0beb27e2f7ec`；Windows
-  `5dd56b1a86727ad5ba7c7bfd978bddf64f7a12caf9018bc321552d4cebcabf22`。從 GitHub
-  Release 重新下載後，兩個 `.sha256` 與本機 metadata 比對均通過。
-- official package 的 archive root 直接放 `zellij`/`zellij.exe`。舊 source-build
-  acceptance 曾假設多一層 package directory，已改成同時支援兩種 layout。
+- 歷史 standard package archive hash：Linux
+  `2de59319328b8e585ed06c506f4f98e6ac92f98a9668ec019344c3b9be001d06`；Windows
+  `14e35e6f941fbb38a0b55e3dd428a25d9cca79851b410d51b673e58f0b0a9938`。
+- 本次 flat-bin candidate archive hash：Linux
+  `646a014dfb126e50e825fbe494e6de352c823d0d03778ddbec52f84f1c7f1f6c`；Windows
+  `bba34c0bd4a24c30b218815773e536e4bf9b49ad808f446588e04ede3765b502`。兩個 candidate
+  都由本機 Python verifier 與 companion `.sha256` 驗證通過，尚未代表已上傳公開 Release。
+- official package 的新 archive root 是 `zellij_bin/`，binary 與所有離線說明直接在該
+  資料夾內。驗證器以 manifest 的 `layout=flat-bin` 判斷新格式，同時保留舊 direct-root
+  `standard` package 的讀取相容性。
+- 使用者應複製完整 `zellij_bin` 到 `~/local/bin/zellij_bin/`，只把這個資料夾加入 PATH。
+  Zellij 沒有 Yazi 那種 runtime data/helper tree，因此不需要額外的 `data/` 或 launcher。
 - `ssh surfer` 的 Linux x86_64 temporary-directory acceptance 已通過：
   `--version`、`setup --check`、default layout 與 12 個 builtin plugins dump，且
   既有 Zellij command baseline 未改變。
@@ -136,6 +145,17 @@ cargo +1.95.0 build --locked --release --target x86_64-unknown-linux-musl
   metadata；Windows Terminal、ConPTY、Windows loader、resize、mouse、detach/attach
   仍必須在真正 Windows host 驗證。
 - ARM64 這一輪不列入 package 預設 targets，也不宣稱 ARM64 runtime 已驗證。
+
+## Flat-bin layout follow-up
+
+- `packaging/package_official.py package` 現在預設 `--layout flat-bin`；`--layout standard`
+  只用於重現舊 package 或相容性驗證。
+- Flat archive 的 allowlist 是六個檔案，且全部直接位於 `zellij_bin/`；這能避免把
+  source checkout、Cargo registry、`target/` 或誤放的 helper 帶進交付物。
+- 這是 package layout 變更，不等同於 Linux runtime 或 Windows host acceptance。Linux
+  `surfer` 既有實驗不重跑；Windows 仍需在另一台 Windows computer 驗證。
+- 目前公開 `zellij-v0.45.1` Release 的 Windows asset 仍是歷史 diagnostic ZIP，尚未
+  自動替換成新的 canonical flat-bin ZIP。Release asset replacement 必須另外確認並記錄。
 
 ## 這次文件更新的決策
 

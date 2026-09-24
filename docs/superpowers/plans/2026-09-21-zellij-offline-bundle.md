@@ -1,5 +1,8 @@
 # Zellij offline bundle implementation plan
 
+> Historical implementation record. The current flat-bin follow-up plan is in
+> [`2026-09-24-zellij-flat-bin.md`](2026-09-24-zellij-flat-bin.md).
+
 ## Objective
 
 沿用 Yazi 已採用的「官方固定版本 + Python bundle + checksum/manifest + GitHub Release」

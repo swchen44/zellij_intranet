@@ -13,20 +13,37 @@ try {
         $TempRoot = Join-Path $env:TEMP ("zellij-verify-{0}" -f ([guid]::NewGuid().ToString("N")))
         New-Item -ItemType Directory -Force -Path $TempRoot | Out-Null
         Expand-Archive -LiteralPath $InputPath -DestinationPath $TempRoot -Force
+        $FlatPackageRoot = Join-Path $TempRoot "zellij_bin"
         $NestedPackageRoot = Join-Path $TempRoot "zellij-x86_64-pc-windows-msvc"
-        if (Test-Path (Join-Path $NestedPackageRoot "zellij.exe") -PathType Leaf) {
+        if (Test-Path (Join-Path $FlatPackageRoot "zellij.exe") -PathType Leaf) {
+            $PackageRoot = $FlatPackageRoot
+        } elseif (Test-Path (Join-Path $NestedPackageRoot "zellij.exe") -PathType Leaf) {
             $PackageRoot = $NestedPackageRoot
         } else {
             $PackageRoot = $TempRoot
         }
     } elseif (Test-Path $InputPath -PathType Container) {
-        $PackageRoot = (Resolve-Path $InputPath).Path
+        $ResolvedInput = (Resolve-Path $InputPath).Path
+        $FlatPackageRoot = Join-Path $ResolvedInput "zellij_bin"
+        if (Test-Path (Join-Path $FlatPackageRoot "zellij.exe") -PathType Leaf) {
+            $PackageRoot = $FlatPackageRoot
+        } else {
+            $PackageRoot = $ResolvedInput
+        }
     } else {
         throw "package not found: $InputPath"
     }
 
     foreach ($required in @("zellij.exe", "README.md", "ZELLIJ-USER-GUIDE.md", "README.txt", "LICENSE.md", "BUILD-INFO.txt")) {
         if (-not (Test-Path (Join-Path $PackageRoot $required) -PathType Leaf)) { throw "missing package file: $required" }
+    }
+
+    $ExpectedFiles = @("zellij.exe", "README.md", "ZELLIJ-USER-GUIDE.md", "README.txt", "LICENSE.md", "BUILD-INFO.txt")
+    $ActualFiles = @(Get-ChildItem -LiteralPath $PackageRoot -Recurse -File | ForEach-Object {
+        $_.FullName.Substring($PackageRoot.Length + 1).Replace("\", "/")
+    } | Sort-Object)
+    if ((Compare-Object -ReferenceObject ($ExpectedFiles | Sort-Object) -DifferenceObject $ActualFiles)) {
+        throw "package file set does not match the six-file contract"
     }
 
     $Readme = Get-Content (Join-Path $PackageRoot "README.md") -Raw
@@ -49,6 +66,10 @@ try {
         }
         if ($BuildInfo -notmatch "target=windows-x86_64") { throw "wrong official target in BUILD-INFO.txt" }
         if ($BuildInfo -notmatch "runtime_network_required=false") { throw "official package requires runtime network" }
+        if ($PackageRoot -match "zellij_bin$") {
+            if ($BuildInfo -notmatch "package_layout=flat-bin") { throw "flat-bin package layout is not declared" }
+            if ($BuildInfo -notmatch "package_root=zellij_bin") { throw "flat-bin package root is not declared" }
+        }
     } else {
         foreach ($required in @("version=", "source_commit=", "source_describe=", "rust_toolchain=", "target=", "feature_profile=", "bundled_plugins=")) {
             if ($BuildInfo -notmatch [regex]::Escape($required)) { throw "BUILD-INFO.txt missing $required" }
@@ -96,6 +117,10 @@ try {
                     throw "official manifest package SHA-256 does not match archive"
                 }
                 if ($Manifest.package_readme -ne "README.md") { throw "official manifest README is incorrect" }
+                if ($PackageRoot -match "zellij_bin$") {
+                    if ($Manifest.layout -ne "flat-bin") { throw "flat-bin manifest layout is incorrect" }
+                    if ($Manifest.package_root -ne "zellij_bin") { throw "flat-bin manifest package root is incorrect" }
+                }
             } else {
                 if ($Manifest.target -ne "x86_64-pc-windows-msvc") { throw "manifest target is incorrect" }
                 if ($Manifest.feature_profile -ne "terminal-only") { throw "manifest feature profile is incorrect" }

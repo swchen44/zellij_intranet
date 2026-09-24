@@ -1,5 +1,8 @@
 # Zellij offline bundle design
 
+> Historical baseline. The current package-layout contract is in
+> [`2026-09-24-zellij-flat-bin-design.md`](2026-09-24-zellij-flat-bin-design.md).
+
 ## Why
 
 公司內網的 runtime 不應依賴 GitHub、Rust/Cargo、Scoop、apt 或其他下載器。交付物要能

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-驗證 `zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip` 在真正 Windows x86_64 computer
+驗證 `zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.zip` 在真正 Windows x86_64 computer
 上可由 Windows Terminal 解壓後直接執行。macOS、Linux、Wine、PE header 檢查與 archive
 checksum 只能作為前置證據，不能取代 Windows loader、ConPTY 或 native shell 實測。
 
@@ -18,12 +18,16 @@ screenshots。不要用 macOS/Linux 推論 Windows runtime 通過。
 
 ## Inputs and clean setup
 
+本機 flat-bin candidate 已完成驗證，但截至本次文件更新尚未上傳取代公開 Release
+asset。Windows 實測必須使用與 `.sha256`、`.manifest.json` 同一組的 archive，不能把
+歷史 diagnostic ZIP 的結果套用到 flat-bin candidate。
+
 從 GitHub Release 取得並放在同一個目錄：
 
 ```text
-zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip
-zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip.sha256
-zellij-v0.45.1-full-x86_64-pc-windows-msvc.manifest.json
+zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.zip
+zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.zip.sha256
+zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.manifest.json
 ```
 
 建議解壓到使用者可寫、路徑短的 temporary directory，不需要 administrator rights。測試
@@ -36,8 +40,8 @@ zellij-v0.45.1-full-x86_64-pc-windows-msvc.manifest.json
 
 - [ ] PowerShell `Get-FileHash -Algorithm SHA256` 與 `.sha256` 一致。
 - [ ] manifest 的 package、target、variant、package SHA-256 一致。
-- [ ] `Expand-Archive` 成功，archive root 有 `zellij.exe`、`README.md`、`README.txt`,
-  `BUILD-INFO.txt`、`LICENSE.md`。
+- [ ] `Expand-Archive` 成功，唯一 archive root 是 `zellij_bin`，其內有 `zellij.exe`、
+  `README.md`、`README.txt`、`BUILD-INFO.txt`、`LICENSE.md`。
 - [ ] package `README.md` 可讀，包含 `Prerequisites`、`Add to PATH`、`Boundary`、
   `Links`，且 project/upstream links 正確。
 
@@ -46,6 +50,7 @@ zellij-v0.45.1-full-x86_64-pc-windows-msvc.manifest.json
 在沒有 Rust、Cargo、OpenSSL、Visual Studio build tools 依賴的 runtime PowerShell 執行：
 
 ```powershell
+cd .\zellij_bin
 .\zellij.exe --version
 .\zellij.exe setup --check
 .\zellij.exe setup --dump-layout default | Set-Content .\default.kdl
@@ -129,4 +134,3 @@ known_limitations:
 每一項只能填 `PASS`、`FAIL`、`BLOCKED` 或 `NOT RUN`，並附 evidence path。完成 W0/W1
 不代表完成 W2/W3；只有 Windows Terminal/ConPTY 實測通過後，才可把 Windows runtime
 gate 標為 `PASS`。
-

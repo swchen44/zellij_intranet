@@ -29,13 +29,19 @@ fallback 的版本與官方 `v0.45.1` artifact 混寫。
 每個 package 內包含：
 
 ```text
-zellij 或 zellij.exe
-README.md       # 解壓後使用說明，必須隨 package 一起驗證
-ZELLIJ-USER-GUIDE.md # 使用場景、快捷鍵與操作手冊，隨 package 一起提供
-README.txt      # 舊流程相容檔
-BUILD-INFO.txt
-LICENSE.md
+zellij_bin/
+  zellij 或 zellij.exe
+  README.md       # 解壓後使用說明，必須隨 package 一起驗證
+  ZELLIJ-USER-GUIDE.md # 使用場景、快捷鍵與操作手冊
+  README.txt      # 舊流程相容檔
+  BUILD-INFO.txt
+  LICENSE.md
 ```
+
+預設 archive 名稱會有 `-flat-bin`，例如
+`zellij-v0.45.1-full-x86_64-unknown-linux-musl-flat-bin.tar.gz`。`zellij_bin` 內不再
+分出 `bin`、`data` 或 runtime helper 資料夾；Zellij builtin WASM plugins 已在 binary
+內嵌。
 
 完整的使用場景說明請先閱讀
 [`docs/ZELLIJ-USER-GUIDE.md`](docs/ZELLIJ-USER-GUIDE.md)。同一份文件也會放入每個
@@ -50,19 +56,18 @@ Linux/Windows package 的 `ZELLIJ-USER-GUIDE.md`，解壓後不需要連外網�
 3. 解壓並閱讀 package 內的 `README.md`；直接執行：
 
    ```sh
-   mkdir zellij-v0.45.1-full-x86_64-unknown-linux-musl
-   tar -xzf zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz \
-     -C zellij-v0.45.1-full-x86_64-unknown-linux-musl
-   cd zellij-v0.45.1-full-x86_64-unknown-linux-musl
-   ./zellij --version
-   ./zellij
+   tar -xzf zellij-v0.45.1-full-x86_64-unknown-linux-musl-flat-bin.tar.gz
+   ./zellij_bin/zellij --version
+   ./zellij_bin/zellij
    ```
 
 4. 在 Zellij pane 中執行主機上已存在的 `yazi`。Yazi 不會由這個 archive 安裝。
 5. 如果要讓目前 shell 暫時找到 Zellij：
 
    ```sh
-   export PATH="$PWD:$PATH"
+   mkdir -p "$HOME/local/bin"
+   cp -R ./zellij_bin "$HOME/local/bin/"
+   export PATH="$HOME/local/bin/zellij_bin:$PATH"
    zellij
    ```
 
@@ -76,8 +81,8 @@ shell 與其他 CLI 都在 Linux host 執行。圖片、影片與 PDF 預覽要�
 2. 用 Windows Terminal 解壓完整目錄，不需要 admin rights：
 
    ```powershell
-   Expand-Archive .\zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip .\zellij
-   cd .\zellij
+   Expand-Archive .\zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.zip .\zellij-package
+   cd .\zellij-package\zellij_bin
    .\zellij.exe --version
    .\zellij.exe
    ```
@@ -86,7 +91,9 @@ shell 與其他 CLI 都在 Linux host 執行。圖片、影片與 PDF 預覽要�
 4. 若要暫時加入目前 PowerShell 的 PATH：
 
    ```powershell
-   $env:Path = "$PWD;$env:Path"
+   New-Item -ItemType Directory -Force "$HOME\local\bin" | Out-Null
+   Copy-Item -Recurse . "$HOME\local\bin\zellij_bin"
+   $env:Path = "$HOME\local\bin\zellij_bin;$env:Path"
    zellij.exe
    ```
 
@@ -135,9 +142,9 @@ python3 packaging/package_official.py package \
 python3 packaging/tests/test_official_package.py
 ./packaging/tests/test-packaging.sh
 python3 packaging/package_official.py verify \
-  dist/official/zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz
+  dist/official/zellij-v0.45.1-full-x86_64-unknown-linux-musl-flat-bin.tar.gz
 python3 packaging/package_official.py verify \
-  dist/official/zellij-v0.45.1-full-x86_64-pc-windows-msvc.zip
+  dist/official/zellij-v0.45.1-full-x86_64-pc-windows-msvc-flat-bin.zip
 ```
 
 Linux x86_64 的 `surfer` temporary-directory runtime acceptance 已完成並保留在
@@ -153,7 +160,7 @@ Linux x86_64 的 `surfer` temporary-directory runtime acceptance 已完成並保
 
 - Linux/Windows 的使用方式與 `--version`/`setup --check`
 - prerequisites 與 runtime 不需要的 build tools
-- Linux shell 與 PowerShell 的 PATH 方法
+- `zellij_bin` 完整資料夾的 copy-to-local 與 Linux/PowerShell PATH 方法
 - package boundary、`full`/`no-web` 行為與 ARM64 狀態
 - project GitHub、upstream release 與 upstream documentation links
 
@@ -168,7 +175,7 @@ archive 是版本化交付物，不應提交到 Git history。repository 保留 
 `dist/official/*.tar.gz` 和 `dist/official/*.zip` 已加入 `.gitignore`。現有歷史可能保留
 先前已提交的 archive；本次會停止後續追蹤，並將可交付 archive 放進 GitHub Release。
 
-Release 內容應包含每個 target 的：
+正式 Release 內容應包含每個 target 的一種 `-flat-bin` archive，以及：
 
 1. archive
 2. `.sha256`
@@ -176,10 +183,12 @@ Release 內容應包含每個 target 的：
 
 目前已建立 release tag `zellij-v0.45.1`，project 為
 <https://github.com/swchen44/zellij_intranet>。公司內網交付時先下載並驗證 Release
-assets，再同步到內網檔案區；runtime 不需要連 GitHub。相關做法與大小限制見
+assets，再同步到內網檔案區；runtime 不需要連 GitHub。這次 flat-bin 產物已在本機
+完成並驗證，但尚未替換公開 Release 的 assets；目前公開 Release 的 Windows asset
+仍是歷史 diagnostic ZIP。相關做法與大小限制見
 [`packaging/OFFICIAL-BINARY.md`](packaging/OFFICIAL-BINARY.md)。
 
-如果公司 Windows Chrome 對 Zellij ZIP 的下載或最後解壓縮步驟阻擋，Release 另外提供
+如果公司 Windows Chrome 對 Zellij ZIP 的下載或最後解壓縮步驟阻擋，歷史 Release 另外提供
 明確標記為 `diag-*` 的 diagnostic ZIP。它們不是正式 package，而是用來比較 root
 executable、top-level directory、`bin/` 路徑與 stored/deflate 壓縮方式；請依
 [`docs/plans/2026-09-22-zellij-download-block-test-plan.md`](docs/plans/2026-09-22-zellij-download-block-test-plan.md)
@@ -189,8 +198,10 @@ executable、top-level directory、`bin/` 路徑與 stored/deflate 壓縮方式�
 
 ## 文件位置
 
-- 設計規格：[`docs/superpowers/specs/2026-09-21-zellij-offline-bundle-design.md`](docs/superpowers/specs/2026-09-21-zellij-offline-bundle-design.md)
-- 實作計畫：[`docs/superpowers/plans/2026-09-21-zellij-offline-bundle.md`](docs/superpowers/plans/2026-09-21-zellij-offline-bundle.md)
+- 歷史官方 bundle 規格：[`docs/superpowers/specs/2026-09-21-zellij-offline-bundle-design.md`](docs/superpowers/specs/2026-09-21-zellij-offline-bundle-design.md)
+- 歷史官方 bundle 計畫：[`docs/superpowers/plans/2026-09-21-zellij-offline-bundle.md`](docs/superpowers/plans/2026-09-21-zellij-offline-bundle.md)
+- 目前 flat-bin 設計規格：[`docs/superpowers/specs/2026-09-24-zellij-flat-bin-design.md`](docs/superpowers/specs/2026-09-24-zellij-flat-bin-design.md)
+- 目前 flat-bin 實作計畫：[`docs/superpowers/plans/2026-09-24-zellij-flat-bin.md`](docs/superpowers/plans/2026-09-24-zellij-flat-bin.md)
 - Windows 驗收計畫：[`docs/plans/2026-09-21-zellij-windows-acceptance.md`](docs/plans/2026-09-21-zellij-windows-acceptance.md)
 - Windows ZIP 下載阻擋測試：[`docs/plans/2026-09-22-zellij-download-block-test-plan.md`](docs/plans/2026-09-22-zellij-download-block-test-plan.md)
 - 官方 binary 操作說明：[`packaging/OFFICIAL-BINARY.md`](packaging/OFFICIAL-BINARY.md)

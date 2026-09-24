@@ -2,7 +2,7 @@
 
 - Test time: 2026-09-20T15:30:45Z
 - SSH host alias: `surfer`
-- Artifact: `zellij-v0.45.1-full-x86_64-unknown-linux-musl.tar.gz`
+- Artifact: `zellij-v0.45.1-full-x86_64-unknown-linux-musl-flat-bin.tar.gz`
 - Mapping: `surfer x86_64 → x86_64-unknown-linux-musl`
 - Existing Zellij path before test: `absent`
 - Existing Zellij version before test: `absent`
